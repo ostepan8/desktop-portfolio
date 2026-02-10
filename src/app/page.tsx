@@ -9,6 +9,7 @@ import {
   useDesktop,
   WALLPAPERS,
   ContextMenu,
+  BootSequence,
   type DesktopIconData,
   type ContextMenuItem,
   type WallpaperKey,
@@ -30,10 +31,13 @@ const DOCK_ITEMS: DockItemData[] = [
 ];
 
 export default function Home() {
+  const [isBooted, setIsBooted] = useState(false);
+
   return (
     <FileSystemProvider>
       <DesktopProvider>
         <WindowManagerProvider>
+          {!isBooted && <BootSequence onComplete={() => setIsBooted(true)} />}
           <DesktopContent />
         </WindowManagerProvider>
       </DesktopProvider>
