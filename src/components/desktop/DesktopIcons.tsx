@@ -16,6 +16,8 @@ interface DesktopIconsProps {
   gridCols?: number;
   gridRows?: number;
   onIconOpen?: (id: string) => void;
+  onIconContextMenu?: (e: React.MouseEvent, icon: DesktopIconData) => void;
+  onDesktopContextMenu?: (e: React.MouseEvent) => void;
 }
 
 const GRID_SIZE = 90; // Size of each grid cell
@@ -32,7 +34,7 @@ function calculateInitialPositions(icons: DesktopIconData[], height: number = DE
   return positions;
 }
 
-export function DesktopIcons({ icons, onIconOpen }: DesktopIconsProps) {
+export function DesktopIcons({ icons, onIconOpen, onIconContextMenu, onDesktopContextMenu }: DesktopIconsProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [iconPositions, setIconPositions] = useState<Record<string, { col: number; row: number }>>(() =>
     calculateInitialPositions(icons)
@@ -101,11 +103,17 @@ export function DesktopIcons({ icons, onIconOpen }: DesktopIconsProps) {
     }));
   }, []);
 
+  const handleDesktopContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    onDesktopContextMenu?.(e);
+  }, [onDesktopContextMenu]);
+
   return (
     <div
       ref={containerRef}
       className="absolute inset-0 pt-8 pr-4 pb-20"
       onClick={handleDesktopClick}
+      onContextMenu={handleDesktopContextMenu}
     >
       {icons.map((icon) => {
         const pos = iconPositions[icon.id] || { col: 0, row: 0 };
@@ -116,6 +124,15 @@ export function DesktopIcons({ icons, onIconOpen }: DesktopIconsProps) {
             isSelected={selectedIds.has(icon.id)}
             position={pos}
             onClick={(e) => handleClick(icon.id, e)}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              // Select the icon if not already selected
+              if (!selectedIds.has(icon.id)) {
+                setSelectedIds(new Set([icon.id]));
+              }
+              onIconContextMenu?.(e, icon);
+            }}
             onDragEnd={(x, y) => handleDragEnd(icon.id, x, y)}
           />
         );
@@ -129,10 +146,11 @@ interface DesktopIconProps {
   isSelected: boolean;
   position: { col: number; row: number };
   onClick: (e: React.MouseEvent) => void;
+  onContextMenu: (e: React.MouseEvent) => void;
   onDragEnd: (x: number, y: number) => void;
 }
 
-function DesktopIcon({ icon, isSelected, position, onClick, onDragEnd }: DesktopIconProps) {
+function DesktopIcon({ icon, isSelected, position, onClick, onContextMenu, onDragEnd }: DesktopIconProps) {
   // Position from right side
   const x = -(position.col * GRID_SIZE) - GRID_SIZE / 2;
   const y = position.row * GRID_SIZE + GRID_SIZE / 2;
@@ -151,6 +169,7 @@ function DesktopIcon({ icon, isSelected, position, onClick, onDragEnd }: Desktop
         onDragEnd(info.point.x, info.point.y);
       }}
       onClick={onClick}
+      onContextMenu={onContextMenu}
       whileDrag={{ scale: 1.05, zIndex: 100 }}
     >
       {/* Icon */}

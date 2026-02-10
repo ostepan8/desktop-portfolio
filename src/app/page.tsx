@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { DesktopProvider, DesktopIcons, DEFAULT_DESKTOP_ICONS, type DesktopIconData } from "@/components/desktop";
+import { AnimatePresence } from "framer-motion";
+import {
+  DesktopProvider,
+  DesktopIcons,
+  DEFAULT_DESKTOP_ICONS,
+  useDesktop,
+  WALLPAPERS,
+  ContextMenu,
+  type DesktopIconData,
+  type ContextMenuItem,
+  type WallpaperKey,
+} from "@/components/desktop";
 import { Dock, type DockItemData } from "@/components/dock";
 import { MenuBar } from "@/components/menubar";
 import { WindowManagerProvider, useWindowManager } from "@/components/window";
@@ -28,7 +39,13 @@ export default function Home() {
 
 function DesktopContent() {
   const { windows, openWindow, focusWindow, getWindowsByApp } = useWindowManager();
+  const { setWallpaper } = useDesktop();
   const [activeApp, setActiveApp] = useState("Finder");
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    items: ContextMenuItem[];
+  } | null>(null);
 
   const openAppWindow = useCallback((appId: string, title: string, icon: string) => {
     const existingWindows = getWindowsByApp(appId);
@@ -71,6 +88,62 @@ function DesktopContent() {
     iconActions[id]?.();
   }, [openAppWindow]);
 
+  const hideContextMenu = useCallback(() => {
+    setContextMenu(null);
+  }, []);
+
+  const handleDesktopContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+
+    // Create wallpaper submenu items
+    const wallpaperKeys = Object.keys(WALLPAPERS) as WallpaperKey[];
+
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        { label: "New Folder", icon: "📁", action: () => console.log("New folder") },
+        { label: "New File", icon: "📄", action: () => console.log("New file") },
+        { divider: true, label: "" },
+        { label: "Get Info", icon: "ℹ️", disabled: true },
+        { divider: true, label: "" },
+        // Wallpaper options
+        ...wallpaperKeys.map((key) => ({
+          label: `Wallpaper: ${key.charAt(0).toUpperCase() + key.slice(1)}`,
+          icon: "🖼️",
+          action: () => setWallpaper(key),
+        })),
+        { divider: true, label: "" },
+        { label: "Clean Up", action: () => console.log("Clean up") },
+        { label: "Sort By", disabled: true },
+      ],
+    });
+  }, [setWallpaper]);
+
+  const handleIconContextMenu = useCallback((e: React.MouseEvent, icon: DesktopIconData) => {
+    e.preventDefault();
+
+    const isFolder = icon.type === "folder" || icon.type === "drive";
+
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      items: [
+        { label: "Open", icon: "📂", action: () => handleDesktopIconOpen(icon.id) },
+        { divider: true, label: "" },
+        { label: "Get Info", icon: "ℹ️", shortcut: "⌘I" },
+        { label: "Rename", action: () => console.log("Rename", icon.id) },
+        { label: "Duplicate", disabled: icon.type === "drive" },
+        { divider: true, label: "" },
+        ...(isFolder ? [
+          { label: "New Folder", icon: "📁" },
+          { divider: true, label: "" },
+        ] : []),
+        { label: "Move to Trash", icon: "🗑️", danger: true, disabled: icon.type === "drive" },
+      ],
+    });
+  }, [handleDesktopIconOpen]);
+
   // Determine which apps are running
   const runningApps = new Set(windows.map((w) => w.appId));
 
@@ -89,11 +162,28 @@ function DesktopContent() {
     <>
       <MenuBar activeApp={activeApp} />
 
-      <main className="flex-1 relative">
-        <DesktopIcons icons={desktopIcons} onIconOpen={handleDesktopIconOpen} />
+      <main className="flex-1 relative" onClick={hideContextMenu}>
+        <DesktopIcons
+          icons={desktopIcons}
+          onIconOpen={handleDesktopIconOpen}
+          onIconContextMenu={handleIconContextMenu}
+          onDesktopContextMenu={handleDesktopContextMenu}
+        />
       </main>
 
       <Dock items={dockItems} onItemClick={handleDockItemClick} />
+
+      {/* Context Menu */}
+      <AnimatePresence>
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            items={contextMenu.items}
+            onClose={hideContextMenu}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }
