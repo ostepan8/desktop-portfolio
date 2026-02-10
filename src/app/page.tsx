@@ -19,7 +19,7 @@ import { MenuBar } from "@/components/menubar";
 import { WindowManagerProvider, useWindowManager } from "@/components/window";
 import { FileSystemProvider } from "@/lib/filesystem";
 import { SoundProvider, useSounds } from "@/lib/sounds";
-import { Finder, AboutMe, Terminal, Projects, TextEdit, Safari } from "@/components/apps";
+import { Finder, AboutMe, Terminal, Projects, TextEdit, Safari, Settings } from "@/components/apps";
 
 const DOCK_ITEMS: DockItemData[] = [
   { id: "finder", icon: "📁", label: "Finder" },
@@ -100,6 +100,8 @@ function DesktopContent({ onWindowOpen, isMuted, onToggleMute }: DesktopContentP
         component = <TextEdit fileId={initialPath ?? undefined} />;
       } else if (appId === "safari") {
         component = <Safari />;
+      } else if (appId === "settings") {
+        component = <Settings />;
       } else {
         component = <AppContent appId={appId} />;
       }
