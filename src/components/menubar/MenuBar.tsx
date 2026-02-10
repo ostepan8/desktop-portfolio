@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 interface MenuBarProps {
   activeApp?: string;
@@ -29,26 +30,29 @@ const APPLE_MENU: MenuItem[] = [
 ];
 
 export function MenuBar({ activeApp = "Finder", isMuted = true, onToggleMute }: MenuBarProps) {
+  const isMobile = useIsMobile();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [time, setTime] = useState<string>("");
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const updateTime = () => {
-      setTime(
-        new Date().toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-          weekday: "short",
-          month: "short",
-          day: "numeric",
-        })
-      );
+      // Shorter format for mobile
+      const format = isMobile
+        ? { hour: "numeric" as const, minute: "2-digit" as const }
+        : {
+            hour: "numeric" as const,
+            minute: "2-digit" as const,
+            weekday: "short" as const,
+            month: "short" as const,
+            day: "numeric" as const,
+          };
+      setTime(new Date().toLocaleTimeString("en-US", format));
     };
     updateTime();
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isMobile]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -66,6 +70,32 @@ export function MenuBar({ activeApp = "Finder", isMuted = true, onToggleMute }: 
     }
   };
 
+  // Mobile: Simplified status bar
+  if (isMobile) {
+    return (
+      <header
+        ref={menuRef}
+        className="h-7 bg-[var(--macos-menubar)] glass flex items-center justify-between px-3 text-[13px] font-medium z-50 select-none"
+      >
+        <div className="flex items-center gap-2">
+          <AppleLogo />
+          <span className="font-semibold text-white/90">{activeApp}</span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={onToggleMute}
+            className="p-1 rounded active:bg-white/20 text-sm"
+          >
+            {isMuted ? "🔇" : "🔊"}
+          </button>
+          <span className="text-white/90 text-xs tabular-nums">{time}</span>
+        </div>
+      </header>
+    );
+  }
+
+  // Desktop: Full menu bar
   return (
     <header
       ref={menuRef}

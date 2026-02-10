@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 export interface DockItemData {
   id: string;
@@ -17,8 +18,37 @@ interface DockProps {
 }
 
 export function Dock({ items, onItemClick }: DockProps) {
+  const isMobile = useIsMobile();
   const mouseX = useMotionValue(Infinity);
 
+  // Mobile: Simple bottom tab bar
+  if (isMobile) {
+    return (
+      <motion.div
+        className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
+      >
+        <div className="bg-[#1c1c1e]/95 backdrop-blur-xl border-t border-white/10 px-2 py-2">
+          <div className="flex items-center justify-around max-w-md mx-auto">
+            {items.slice(0, 5).map((item) => (
+              <MobileDockItem
+                key={item.id}
+                item={item}
+                onClick={() => {
+                  item.onClick?.();
+                  onItemClick?.(item.id);
+                }}
+              />
+            ))}
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Desktop: Full dock with magnification
   return (
     <motion.div
       className="absolute bottom-2 left-1/2 -translate-x-1/2 z-50"
@@ -44,6 +74,27 @@ export function Dock({ items, onItemClick }: DockProps) {
         ))}
       </motion.div>
     </motion.div>
+  );
+}
+
+interface MobileDockItemProps {
+  item: DockItemData;
+  onClick?: () => void;
+}
+
+function MobileDockItem({ item, onClick }: MobileDockItemProps) {
+  return (
+    <motion.button
+      className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg active:bg-white/10"
+      onClick={onClick}
+      whileTap={{ scale: 0.9 }}
+    >
+      <span className="text-2xl">{item.icon}</span>
+      <span className="text-[10px] text-white/60 font-medium">{item.label}</span>
+      {item.isRunning && (
+        <div className="absolute -bottom-0.5 w-1 h-1 bg-white/60 rounded-full" />
+      )}
+    </motion.button>
   );
 }
 

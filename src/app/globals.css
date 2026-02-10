@@ -64,3 +64,34 @@ body {
 .transition-transform {
   transition: transform 0.2s ease-out;
 }
+
+/* iOS safe area handling */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  /* Adjust menu bar for mobile */
+  .mobile-hidden {
+    display: none;
+  }
+
+  /* Touch-friendly tap targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Prevent pull-to-refresh and bounce on iOS */
+@supports (-webkit-touch-callout: none) {
+  html, body {
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: touch;
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 export interface DesktopIconData {
   id: string;
@@ -35,6 +36,7 @@ function calculateInitialPositions(icons: DesktopIconData[], height: number = DE
 }
 
 export function DesktopIcons({ icons, onIconOpen, onIconContextMenu, onDesktopContextMenu }: DesktopIconsProps) {
+  const isMobile = useIsMobile();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [iconPositions, setIconPositions] = useState<Record<string, { col: number; row: number }>>(() =>
     calculateInitialPositions(icons)
@@ -50,19 +52,19 @@ export function DesktopIcons({ icons, onIconOpen, onIconContextMenu, onDesktopCo
 
   const handleClick = useCallback((id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     const now = Date.now();
     const lastClick = lastClickTime.current[id] || 0;
-    
-    // Double-click detection (300ms threshold)
-    if (now - lastClick < 300) {
-      // Double click - open the icon
+
+    // Double-click detection (300ms threshold) - on mobile, single tap opens
+    if (isMobile || now - lastClick < 300) {
+      // Double click or mobile tap - open the icon
       onIconOpen?.(id);
       icons.find(i => i.id === id)?.onOpen?.();
       lastClickTime.current[id] = 0;
       return;
     }
-    
+
     lastClickTime.current[id] = now;
 
     // Single click - select
@@ -81,33 +83,57 @@ export function DesktopIcons({ icons, onIconOpen, onIconContextMenu, onDesktopCo
       // Single select
       setSelectedIds(new Set([id]));
     }
-  }, [icons, onIconOpen]);
+  }, [icons, onIconOpen, isMobile]);
 
   const handleDesktopClick = useCallback(() => {
     setSelectedIds(new Set());
   }, []);
 
   const handleDragEnd = useCallback((id: string, x: number, y: number) => {
-    if (!containerRef.current) return;
-    
+    if (!containerRef.current || isMobile) return; // Disable drag on mobile
+
     const rect = containerRef.current.getBoundingClientRect();
     const relX = rect.right - x - GRID_SIZE / 2;
     const relY = y - rect.top;
-    
+
     const col = Math.max(0, Math.floor(relX / GRID_SIZE));
     const row = Math.max(0, Math.floor(relY / GRID_SIZE));
-    
+
     setIconPositions((prev) => ({
       ...prev,
       [id]: { col, row },
     }));
-  }, []);
+  }, [isMobile]);
 
   const handleDesktopContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     onDesktopContextMenu?.(e);
   }, [onDesktopContextMenu]);
 
+  // Mobile: Horizontal scrollable grid at top
+  if (isMobile) {
+    return (
+      <div
+        ref={containerRef}
+        className="absolute inset-0 pt-8 pb-20"
+        onClick={handleDesktopClick}
+      >
+        <div className="px-4 py-4">
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {icons.map((icon) => (
+              <MobileDesktopIcon
+                key={icon.id}
+                icon={icon}
+                onClick={(e) => handleClick(icon.id, e)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop: Full draggable grid
   return (
     <div
       ref={containerRef}
@@ -138,6 +164,28 @@ export function DesktopIcons({ icons, onIconOpen, onIconContextMenu, onDesktopCo
         );
       })}
     </div>
+  );
+}
+
+interface MobileDesktopIconProps {
+  icon: DesktopIconData;
+  onClick: (e: React.MouseEvent) => void;
+}
+
+function MobileDesktopIcon({ icon, onClick }: MobileDesktopIconProps) {
+  return (
+    <motion.div
+      className="flex flex-col items-center gap-1 flex-shrink-0"
+      onClick={onClick}
+      whileTap={{ scale: 0.95 }}
+    >
+      <div className="w-14 h-14 flex items-center justify-center rounded-xl bg-white/10 active:bg-white/20">
+        <span className="text-3xl">{icon.icon}</span>
+      </div>
+      <span className="text-[10px] text-white/80 font-medium text-center w-16 truncate">
+        {icon.label}
+      </span>
+    </motion.div>
   );
 }
 

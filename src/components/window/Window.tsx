@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, ReactNode } from "react";
 import { motion, useDragControls, PanInfo } from "framer-motion";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 export interface WindowProps {
   id: string;
@@ -38,11 +39,12 @@ export function Window({
   onMaximize,
   onFocus,
 }: WindowProps) {
+  const isMobile = useIsMobile();
   const [position, setPosition] = useState({ x: initialX, y: initialY });
   const [size, setSize] = useState({ width: initialWidth, height: initialHeight });
   const [isMaximized, setIsMaximized] = useState(false);
   const [preMaximizeState, setPreMaximizeState] = useState({ position, size });
-  
+
   const dragControls = useDragControls();
   const windowRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
@@ -127,6 +129,44 @@ export function Window({
     [size, position, minWidth, minHeight]
   );
 
+  // Mobile: Fullscreen window
+  if (isMobile) {
+    return (
+      <motion.div
+        ref={windowRef}
+        className="fixed inset-0 top-7 bottom-16 flex flex-col bg-[#1e1e1e] z-40"
+        onTouchStart={onFocus}
+        initial={{ y: "100%", opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        exit={{ y: "100%", opacity: 0 }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      >
+        {/* Mobile Title Bar */}
+        <div className="h-12 flex items-center justify-between px-4 bg-[#2a2a2c] border-b border-white/10">
+          <button
+            onClick={onClose}
+            className="text-[#0a84ff] text-sm font-medium active:opacity-50"
+          >
+            Close
+          </button>
+          <div className="flex items-center gap-2">
+            {icon && <span className="text-lg">{icon}</span>}
+            <span className="text-white/90 font-medium text-sm truncate max-w-[180px]">
+              {title}
+            </span>
+          </div>
+          <div className="w-12" /> {/* Spacer for centering */}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-auto">
+          {children}
+        </div>
+      </motion.div>
+    );
+  }
+
+  // Desktop: Regular draggable window
   return (
     <motion.div
       ref={windowRef}
