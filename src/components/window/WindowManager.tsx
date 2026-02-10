@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Window } from "./Window";
 
@@ -89,6 +89,40 @@ export function WindowManagerProvider({ children }: WindowManagerProviderProps) 
   const getWindowsByApp = useCallback((appId: string) => {
     return windows.filter((w) => w.appId === appId);
   }, [windows]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle if Meta (Cmd) key is pressed
+      if (!e.metaKey) return;
+
+      // Cmd+W - Close active window
+      if (e.key === "w" && activeWindowId) {
+        e.preventDefault();
+        closeWindow(activeWindowId);
+      }
+
+      // Cmd+M - Minimize active window
+      if (e.key === "m" && activeWindowId) {
+        e.preventDefault();
+        minimizeWindow(activeWindowId);
+      }
+
+      // Cmd+` - Cycle through windows
+      if (e.key === "`" && windows.length > 1) {
+        e.preventDefault();
+        const visibleWindows = windows.filter((w) => !w.isMinimized);
+        if (visibleWindows.length > 1) {
+          const currentIndex = visibleWindows.findIndex((w) => w.id === activeWindowId);
+          const nextIndex = (currentIndex + 1) % visibleWindows.length;
+          focusWindow(visibleWindows[nextIndex].id);
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [activeWindowId, windows, closeWindow, minimizeWindow, focusWindow]);
 
   return (
     <WindowManagerContext.Provider
