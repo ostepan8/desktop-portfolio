@@ -3,9 +3,11 @@
 import { useState, useRef, useCallback, ReactNode } from "react";
 import { motion, useDragControls, PanInfo } from "framer-motion";
 import { useIsMobile } from "@/lib/useIsMobile";
+import { AppIcon } from "@/components/icons";
 
 export interface WindowProps {
   id: string;
+  appId?: string;
   title: string;
   icon?: string;
   children: ReactNode;
@@ -24,6 +26,7 @@ export interface WindowProps {
 
 export function Window({
   id,
+  appId,
   title,
   icon,
   children,
@@ -39,6 +42,9 @@ export function Window({
   onMaximize,
   onFocus,
 }: WindowProps) {
+  // Suppress unused variable warnings - these are part of the interface
+  void id;
+  void icon;
   const isMobile = useIsMobile();
   const [position, setPosition] = useState({ x: initialX, y: initialY });
   const [size, setSize] = useState({ width: initialWidth, height: initialHeight });
@@ -150,7 +156,7 @@ export function Window({
             Close
           </button>
           <div className="flex items-center gap-2">
-            {icon && <span className="text-lg">{icon}</span>}
+            {appId && <AppIcon appId={appId} size={20} />}
             <span className="text-white/90 font-medium text-sm truncate max-w-[180px]">
               {title}
             </span>
@@ -208,9 +214,9 @@ export function Window({
         </div>
 
         {/* Title */}
-        <div className="flex-1 text-center">
+        <div className="flex-1 flex items-center justify-center gap-2">
+          {appId && <AppIcon appId={appId} size={16} />}
           <span className={"text-sm font-medium " + (isActive ? "text-white/90" : "text-white/50")}>
-            {icon && <span className="mr-2">{icon}</span>}
             {title}
           </span>
         </div>

@@ -3,10 +3,11 @@
 import { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { useIsMobile } from "@/lib/useIsMobile";
+import { AppIcon } from "@/components/icons";
 
 export interface DockItemData {
   id: string;
-  icon: string;
+  icon: string; // kept for backwards compat, but we'll use AppIcon
   label: string;
   isRunning?: boolean;
   onClick?: () => void;
@@ -85,11 +86,11 @@ interface MobileDockItemProps {
 function MobileDockItem({ item, onClick }: MobileDockItemProps) {
   return (
     <motion.button
-      className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg active:bg-white/10"
+      className="flex flex-col items-center gap-0.5 px-3 py-1 rounded-lg active:bg-white/10 relative"
       onClick={onClick}
       whileTap={{ scale: 0.9 }}
     >
-      <span className="text-2xl">{item.icon}</span>
+      <AppIcon appId={item.id} size={40} />
       <span className="text-[10px] text-white/60 font-medium">{item.label}</span>
       {item.isRunning && (
         <div className="absolute -bottom-0.5 w-1 h-1 bg-white/60 rounded-full" />
@@ -135,13 +136,13 @@ function DockIcon({ item, mouseX, onClick }: DockIconProps) {
       <motion.div
         ref={ref}
         style={{ width, height: width }}
-        className="bg-white/10 hover:bg-white/20 rounded-xl flex items-center justify-center cursor-pointer"
+        className="rounded-xl flex items-center justify-center cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={onClick}
         whileTap={{ scale: 0.95 }}
       >
-        <span className="text-3xl select-none">{item.icon}</span>
+        <AppIcon appId={item.id} size={48} className="select-none" />
       </motion.div>
 
       {item.isRunning && (

@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useIsMobile } from "@/lib/useIsMobile";
+import { FolderIcon, FileIcon, DriveIcon } from "@/components/icons";
 
 export interface DesktopIconData {
   id: string;
@@ -59,8 +60,8 @@ export function DesktopIcons({ icons, onIconOpen, onIconContextMenu, onDesktopCo
     // Double-click detection (300ms threshold) - on mobile, single tap opens
     if (isMobile || now - lastClick < 300) {
       // Double click or mobile tap - open the icon
+      // Only call onIconOpen (not both) to prevent double window opening
       onIconOpen?.(id);
-      icons.find(i => i.id === id)?.onOpen?.();
       lastClickTime.current[id] = 0;
       return;
     }
@@ -173,14 +174,16 @@ interface MobileDesktopIconProps {
 }
 
 function MobileDesktopIcon({ icon, onClick }: MobileDesktopIconProps) {
+  const IconComponent = icon.type === "drive" ? DriveIcon : icon.type === "folder" ? FolderIcon : FileIcon;
+
   return (
     <motion.div
       className="flex flex-col items-center gap-1 flex-shrink-0"
       onClick={onClick}
       whileTap={{ scale: 0.95 }}
     >
-      <div className="w-14 h-14 flex items-center justify-center rounded-xl bg-white/10 active:bg-white/20">
-        <span className="text-3xl">{icon.icon}</span>
+      <div className="w-14 h-14 flex items-center justify-center">
+        <IconComponent size={56} />
       </div>
       <span className="text-[10px] text-white/80 font-medium text-center w-16 truncate">
         {icon.label}
@@ -202,6 +205,8 @@ function DesktopIcon({ icon, isSelected, position, onClick, onContextMenu, onDra
   // Position from right side
   const x = -(position.col * GRID_SIZE) - GRID_SIZE / 2;
   const y = position.row * GRID_SIZE + GRID_SIZE / 2;
+
+  const IconComponent = icon.type === "drive" ? DriveIcon : icon.type === "folder" ? FolderIcon : FileIcon;
 
   return (
     <motion.div
@@ -225,13 +230,13 @@ function DesktopIcon({ icon, isSelected, position, onClick, onContextMenu, onDra
         className={"w-16 h-16 flex items-center justify-center rounded-lg transition-colors " +
           (isSelected ? "bg-white/20" : "hover:bg-white/10")}
       >
-        <span className="text-5xl drop-shadow-lg">{icon.icon}</span>
+        <IconComponent size={64} />
       </div>
 
       {/* Label */}
       <div
         className={"px-1 py-0.5 rounded text-center max-w-[80px] " +
-          (isSelected ? "bg-[#0058d1] text-white" : "text-white drop-shadow-lg")}
+          (isSelected ? "bg-[#0058d1] text-white" : "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]")}
       >
         <span className="text-xs font-medium line-clamp-2 break-all">
           {icon.label}

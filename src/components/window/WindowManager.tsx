@@ -153,6 +153,7 @@ export function WindowManagerProvider({ children }: WindowManagerProviderProps) 
                 >
                   <Window
                     id={w.id}
+                    appId={w.appId}
                     title={w.title}
                     icon={w.icon}
                     initialX={w.x}
