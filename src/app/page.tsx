@@ -17,7 +17,7 @@ import { Dock, type DockItemData } from "@/components/dock";
 import { MenuBar } from "@/components/menubar";
 import { WindowManagerProvider, useWindowManager } from "@/components/window";
 import { FileSystemProvider } from "@/lib/filesystem";
-import { Finder, AboutMe } from "@/components/apps";
+import { Finder, AboutMe, Terminal } from "@/components/apps";
 
 const DOCK_ITEMS: DockItemData[] = [
   { id: "finder", icon: "📁", label: "Finder" },
@@ -67,6 +67,8 @@ function DesktopContent() {
         component = <Finder initialPath={initialPath ?? null} />;
       } else if (appId === "about") {
         component = <AboutMe />;
+      } else if (appId === "terminal") {
+        component = <Terminal />;
       } else {
         component = <AppContent appId={appId} />;
       }
