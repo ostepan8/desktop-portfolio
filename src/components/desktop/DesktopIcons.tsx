@@ -210,7 +210,7 @@ function DesktopIcon({ icon, isSelected, position, onClick, onContextMenu, onDra
 
   return (
     <motion.div
-      className="absolute flex flex-col items-center gap-1 cursor-default select-none"
+      className="absolute flex flex-col items-center gap-1.5 cursor-default select-none group"
       style={{
         right: -x,
         top: y,
@@ -227,18 +227,34 @@ function DesktopIcon({ icon, isSelected, position, onClick, onContextMenu, onDra
     >
       {/* Icon */}
       <div
-        className={"w-16 h-16 flex items-center justify-center rounded-lg transition-colors " +
-          (isSelected ? "bg-white/20" : "hover:bg-white/10")}
+        className={"w-[72px] h-[72px] flex items-center justify-center rounded-xl transition-all duration-150 " +
+          (isSelected
+            ? "bg-white/25 ring-2 ring-white/30"
+            : "group-hover:bg-white/10")}
       >
         <IconComponent size={64} />
       </div>
 
       {/* Label */}
       <div
-        className={"px-1 py-0.5 rounded text-center max-w-[80px] " +
-          (isSelected ? "bg-[#0058d1] text-white" : "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]")}
+        className={"px-1.5 py-[3px] rounded-md text-center max-w-[84px] transition-colors " +
+          (isSelected
+            ? "bg-[#0058d1]"
+            : "bg-transparent")}
       >
-        <span className="text-xs font-medium line-clamp-2 break-all">
+        <span
+          className={
+            "text-[11px] font-medium leading-tight line-clamp-2 break-words " +
+            (isSelected
+              ? "text-white"
+              : "text-white")
+          }
+          style={{
+            textShadow: isSelected
+              ? "none"
+              : "0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.5)",
+          }}
+        >
           {icon.label}
         </span>
       </div>
