@@ -176,8 +176,10 @@ export function Window({
   return (
     <motion.div
       ref={windowRef}
-      className={"absolute rounded-xl overflow-hidden shadow-2xl flex flex-col " +
-        (isActive ? "shadow-black/50" : "shadow-black/30")}
+      className={"absolute rounded-xl overflow-hidden flex flex-col border " +
+        (isActive
+          ? "border-white/20 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5),0_12px_24px_-8px_rgba(0,0,0,0.3),0_0_0_1px_rgba(255,255,255,0.1)_inset]"
+          : "border-white/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)]")}
       style={{
         x: position.x,
         y: position.y,
@@ -197,8 +199,10 @@ export function Window({
     >
       {/* Title Bar */}
       <div
-        className={"h-8 flex items-center px-3 gap-2 cursor-default select-none " +
-          (isActive ? "bg-[#3a3a3c]" : "bg-[#2a2a2c]")}
+        className={"h-10 flex items-center px-3 gap-2 cursor-default select-none border-b border-black/20 " +
+          (isActive
+            ? "bg-gradient-to-b from-[#3d3d3f] to-[#323234]"
+            : "bg-[#2a2a2c]")}
         onPointerDown={(e) => {
           if (!isResizing.current) {
             dragControls.start(e);
@@ -207,7 +211,7 @@ export function Window({
         onDoubleClick={handleMaximize}
       >
         {/* Traffic Lights */}
-        <div className="flex items-center gap-2 group">
+        <div className="flex items-center gap-[7px] group/traffic">
           <TrafficLight color="close" onClick={onClose} isActive={isActive} />
           <TrafficLight color="minimize" onClick={onMinimize} isActive={isActive} />
           <TrafficLight color="maximize" onClick={handleMaximize} isActive={isActive} />
@@ -216,13 +220,13 @@ export function Window({
         {/* Title */}
         <div className="flex-1 flex items-center justify-center gap-2">
           {appId && <AppIcon appId={appId} size={16} />}
-          <span className={"text-sm font-medium " + (isActive ? "text-white/90" : "text-white/50")}>
+          <span className={"text-[13px] font-medium " + (isActive ? "text-white/90" : "text-white/40")}>
             {title}
           </span>
         </div>
 
         {/* Spacer for centering */}
-        <div className="w-14" />
+        <div className="w-[54px]" />
       </div>
 
       {/* Content */}
@@ -250,39 +254,47 @@ interface TrafficLightProps {
 }
 
 function TrafficLight({ color, onClick, isActive }: TrafficLightProps) {
-  const colors = {
-    close: isActive ? "bg-[#ff5f57] hover:bg-[#ff5f57]" : "bg-[#4a4a4a]",
-    minimize: isActive ? "bg-[#febc2e] hover:bg-[#febc2e]" : "bg-[#4a4a4a]",
-    maximize: isActive ? "bg-[#28c840] hover:bg-[#28c840]" : "bg-[#4a4a4a]",
+  const baseColors = {
+    close: { bg: "#ff5f57", border: "#e0443e" },
+    minimize: { bg: "#febc2e", border: "#dea123" },
+    maximize: { bg: "#28c840", border: "#1aab29" },
   };
 
   const icons = {
     close: (
-      <svg className="w-2 h-2" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M2 2l8 8M10 2l-8 8" />
+      <svg className="w-[6px] h-[6px]" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+        <path d="M2.5 2.5l7 7M9.5 2.5l-7 7" />
       </svg>
     ),
     minimize: (
-      <svg className="w-2 h-2" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg className="w-[8px] h-[8px]" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
         <path d="M2 6h8" />
       </svg>
     ),
     maximize: (
-      <svg className="w-2 h-2" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
-        <path d="M2 2l8 8M2 10V2h8" />
+      <svg className="w-[6px] h-[6px]" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path d="M1 1h4v4H1zM7 7h4v4H7z" />
       </svg>
     ),
   };
 
+  const { bg, border } = baseColors[color];
+
   return (
     <button
-      className={"w-3 h-3 rounded-full flex items-center justify-center transition-colors group-hover:opacity-100 " + colors[color]}
+      className="w-3 h-3 rounded-full flex items-center justify-center transition-all relative"
+      style={{
+        backgroundColor: isActive ? bg : "#4a4a4a",
+        boxShadow: isActive
+          ? `inset 0 0 0 0.5px ${border}, inset 0 -1px 1px rgba(0,0,0,0.1), 0 1px 0 rgba(255,255,255,0.05)`
+          : "inset 0 0 0 0.5px #3a3a3a",
+      }}
       onClick={(e) => {
         e.stopPropagation();
         onClick?.();
       }}
     >
-      <span className="opacity-0 group-hover:opacity-100 text-black/80">
+      <span className="opacity-0 group-hover/traffic:opacity-100 text-black/80 transition-opacity">
         {icons[color]}
       </span>
     </button>
