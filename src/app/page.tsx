@@ -17,7 +17,7 @@ import { Dock, type DockItemData } from "@/components/dock";
 import { MenuBar } from "@/components/menubar";
 import { WindowManagerProvider, useWindowManager } from "@/components/window";
 import { FileSystemProvider } from "@/lib/filesystem";
-import { Finder, AboutMe, Terminal, Projects } from "@/components/apps";
+import { Finder, AboutMe, Terminal, Projects, TextEdit } from "@/components/apps";
 
 const DOCK_ITEMS: DockItemData[] = [
   { id: "finder", icon: "📁", label: "Finder" },
@@ -71,6 +71,8 @@ function DesktopContent() {
         component = <Terminal />;
       } else if (appId === "projects") {
         component = <Projects />;
+      } else if (appId === "textedit") {
+        component = <TextEdit fileId={initialPath ?? undefined} />;
       } else {
         component = <AppContent appId={appId} />;
       }
