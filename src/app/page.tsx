@@ -17,6 +17,7 @@ import { Dock, type DockItemData } from "@/components/dock";
 import { MenuBar } from "@/components/menubar";
 import { WindowManagerProvider, useWindowManager } from "@/components/window";
 import { FileSystemProvider } from "@/lib/filesystem";
+import { Finder } from "@/components/apps";
 
 const DOCK_ITEMS: DockItemData[] = [
   { id: "finder", icon: "📁", label: "Finder" },
@@ -50,13 +51,24 @@ function DesktopContent() {
     items: ContextMenuItem[];
   } | null>(null);
 
-  const openAppWindow = useCallback((appId: string, title: string, icon: string) => {
+  const openAppWindow = useCallback((appId: string, title: string, icon: string, initialPath?: string | null) => {
+    // For finder, always open a new window if path is specified
     const existingWindows = getWindowsByApp(appId);
+    const shouldFocusExisting = existingWindows.length > 0 && initialPath === undefined;
 
-    if (existingWindows.length > 0) {
+    if (shouldFocusExisting) {
       focusWindow(existingWindows[0].id);
     } else {
       const windowId = `${appId}-${Date.now()}`;
+
+      // Determine which component to render
+      let component: React.ReactNode;
+      if (appId === "finder") {
+        component = <Finder initialPath={initialPath ?? null} />;
+      } else {
+        component = <AppContent appId={appId} />;
+      }
+
       openWindow({
         id: windowId,
         appId: appId,
@@ -64,11 +76,11 @@ function DesktopContent() {
         icon: icon,
         x: 100 + Math.random() * 100,
         y: 50 + Math.random() * 50,
-        width: 700,
-        height: 500,
-        minWidth: 400,
+        width: appId === "finder" ? 800 : 700,
+        height: appId === "finder" ? 500 : 500,
+        minWidth: appId === "finder" ? 600 : 400,
         minHeight: 300,
-        component: <AppContent appId={appId} />,
+        component,
       });
     }
     setActiveApp(title);
@@ -83,9 +95,9 @@ function DesktopContent() {
   const handleDesktopIconOpen = useCallback((id: string) => {
     // Map desktop icon to app or action
     const iconActions: Record<string, () => void> = {
-      "macintosh-hd": () => openAppWindow("finder", "Macintosh HD", "💻"),
-      "documents": () => openAppWindow("finder", "Documents", "📁"),
-      "projects": () => openAppWindow("projects", "Projects", "📂"),
+      "macintosh-hd": () => openAppWindow("finder", "Macintosh HD", "💻", null),
+      "documents": () => openAppWindow("finder", "Documents", "📁", "documents"),
+      "projects": () => openAppWindow("finder", "Projects", "📂", "projects"),
       "readme": () => openAppWindow("textedit", "README.txt", "📄"),
     };
     iconActions[id]?.();
