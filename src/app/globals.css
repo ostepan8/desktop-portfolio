@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+:root {
+  --font-inter: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* macOS colors */
+  --macos-bg: #1e1e1e;
+  --macos-menubar: rgba(30, 30, 30, 0.8);
+  --macos-dock: rgba(30, 30, 30, 0.5);
+  --macos-window: rgba(40, 40, 40, 0.95);
+  --macos-window-titlebar: #3a3a3a;
+  --macos-accent: #007aff;
+  --macos-text: #ffffff;
+  --macos-text-secondary: rgba(255, 255, 255, 0.6);
+
+  /* Traffic light colors */
+  --traffic-close: #ff5f57;
+  --traffic-minimize: #febc2e;
+  --traffic-maximize: #28c840;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  font-family: var(--font-inter);
+  background: var(--macos-bg);
+  color: var(--macos-text);
+}
+
+/* Disable text selection on UI elements but allow in content */
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.allow-select {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* macOS-style blur effect */
+.glass {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Smooth transitions */
+.transition-transform {
+  transition: transform 0.2s ease-out;
+}
