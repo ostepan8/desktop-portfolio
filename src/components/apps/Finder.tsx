@@ -101,43 +101,79 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
   return (
     <div className="h-full flex bg-[#1e1e1e] text-white">
       {/* Sidebar */}
-      <aside className="w-48 bg-[#252526] border-r border-white/10 flex flex-col">
-        <div className="p-2 text-xs text-white/40 uppercase tracking-wider font-medium">
+      <aside className="w-52 bg-[#1e1e1e]/50 backdrop-blur-xl border-r border-white/5 flex flex-col py-2">
+        {/* Favorites Section */}
+        <div className="px-4 py-1.5 text-[11px] text-white/40 uppercase tracking-wider font-semibold">
           Favorites
         </div>
-        {favorites.map((fav) => (
-          <button
-            key={fav.id ?? "desktop"}
-            className={
-              "flex items-center gap-2 px-3 py-1.5 text-sm transition-colors " +
-              (currentFolderId === fav.id && !searchQuery
-                ? "bg-[#0058d1] text-white"
-                : "text-white/80 hover:bg-white/5")
-            }
-            onClick={() => {
-              setCurrentFolderId(fav.id);
-              setSearchQuery("");
-              setSelectedIds(new Set());
-            }}
-          >
-            <span>{fav.icon}</span>
-            <span>{fav.name}</span>
-          </button>
-        ))}
+        <div className="px-2">
+          {favorites.map((fav) => (
+            <button
+              key={fav.id ?? "desktop"}
+              className={
+                "w-full flex items-center gap-2.5 px-2 py-[5px] text-[13px] rounded-md transition-all " +
+                (currentFolderId === fav.id && !searchQuery
+                  ? "bg-white/15 text-white"
+                  : "text-white/80 hover:bg-white/8 active:bg-white/12")
+              }
+              onClick={() => {
+                setCurrentFolderId(fav.id);
+                setSearchQuery("");
+                setSelectedIds(new Set());
+              }}
+            >
+              <span className="text-[16px] w-5 text-center opacity-80">{fav.icon}</span>
+              <span className="font-normal">{fav.name}</span>
+            </button>
+          ))}
+        </div>
 
-        <div className="mt-4 p-2 text-xs text-white/40 uppercase tracking-wider font-medium">
+        {/* Locations Section */}
+        <div className="mt-4 px-4 py-1.5 text-[11px] text-white/40 uppercase tracking-wider font-semibold">
           Locations
         </div>
-        <button
-          className="flex items-center gap-2 px-3 py-1.5 text-sm text-white/80 hover:bg-white/5"
-          onClick={() => {
-            setCurrentFolderId(null);
-            setSearchQuery("");
-          }}
-        >
-          <span>💻</span>
-          <span>Macintosh HD</span>
-        </button>
+        <div className="px-2">
+          <button
+            className={
+              "w-full flex items-center gap-2.5 px-2 py-[5px] text-[13px] rounded-md transition-all " +
+              (currentFolderId === null && !searchQuery
+                ? "bg-white/15 text-white"
+                : "text-white/80 hover:bg-white/8 active:bg-white/12")
+            }
+            onClick={() => {
+              setCurrentFolderId(null);
+              setSearchQuery("");
+            }}
+          >
+            <span className="text-[16px] w-5 text-center opacity-80">💻</span>
+            <span className="font-normal">Macintosh HD</span>
+          </button>
+        </div>
+
+        {/* Tags Section */}
+        <div className="mt-4 px-4 py-1.5 text-[11px] text-white/40 uppercase tracking-wider font-semibold">
+          Tags
+        </div>
+        <div className="px-2 space-y-0.5">
+          {[
+            { color: "#ff3b30", name: "Red" },
+            { color: "#ff9500", name: "Orange" },
+            { color: "#34c759", name: "Green" },
+            { color: "#007aff", name: "Blue" },
+            { color: "#af52de", name: "Purple" },
+          ].map((tag) => (
+            <button
+              key={tag.name}
+              className="w-full flex items-center gap-2.5 px-2 py-[5px] text-[13px] text-white/60 rounded-md hover:bg-white/8 transition-all"
+            >
+              <span
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: tag.color }}
+              />
+              <span className="font-normal">{tag.name}</span>
+            </button>
+          ))}
+        </div>
       </aside>
 
       {/* Main content */}

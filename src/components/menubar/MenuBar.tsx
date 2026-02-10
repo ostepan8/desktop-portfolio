@@ -191,29 +191,43 @@ function MenuDropdown({ items, isOpen }: MenuDropdownProps) {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="absolute top-full left-0 mt-0.5 min-w-[200px] bg-gray-800/95 glass rounded-lg border border-white/10 shadow-xl py-1 overflow-hidden"
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.1 }}
+          className="absolute top-full left-0 mt-0.5 min-w-[220px] py-1.5 rounded-xl overflow-hidden"
+          style={{
+            backgroundColor: "rgba(30, 30, 32, 0.85)",
+            backdropFilter: "blur(50px) saturate(180%)",
+            WebkitBackdropFilter: "blur(50px) saturate(180%)",
+            boxShadow:
+              "0 20px 40px -8px rgba(0,0,0,0.5), 0 0 0 0.5px rgba(255,255,255,0.1), inset 0 0.5px 0 rgba(255,255,255,0.08)",
+          }}
+          initial={{ opacity: 0, y: -6, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -6, scale: 0.98 }}
+          transition={{ duration: 0.12, ease: [0.2, 0, 0.13, 1] }}
         >
           {items.map((item, index) =>
             item.divider ? (
-              <div key={index} className="h-px bg-white/10 my-1 mx-2" />
+              <div key={index} className="h-px bg-white/10 my-1.5 mx-3" />
             ) : (
-              <div
+              <button
                 key={index}
-                className={"px-3 py-1 flex items-center justify-between " +
+                className={
+                  "w-full px-3 py-[5px] mx-1.5 flex items-center justify-between text-[13px] rounded-md transition-colors " +
+                  "focus:outline-none " +
                   (item.disabled
                     ? "text-white/30 cursor-default"
-                    : "text-white/90 hover:bg-[var(--macos-accent)] cursor-default")}
+                    : "text-white/90 hover:bg-[#0058d1] active:bg-[#004bb5] cursor-default")
+                }
+                style={{ width: "calc(100% - 12px)" }}
                 onClick={() => !item.disabled && item.action?.()}
+                disabled={item.disabled}
               >
-                <span>{item.label}</span>
+                <span className="font-normal">{item.label}</span>
                 {item.shortcut && (
-                  <span className="text-white/50 text-xs ml-4">{item.shortcut}</span>
+                  <span className="text-white/40 text-[12px] font-medium tracking-wide ml-4">
+                    {item.shortcut}
+                  </span>
                 )}
-              </div>
+              </button>
             )
           )}
         </motion.div>
