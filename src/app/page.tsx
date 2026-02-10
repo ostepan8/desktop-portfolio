@@ -18,6 +18,7 @@ import { Dock, type DockItemData } from "@/components/dock";
 import { MenuBar } from "@/components/menubar";
 import { WindowManagerProvider, useWindowManager } from "@/components/window";
 import { FileSystemProvider } from "@/lib/filesystem";
+import { SoundProvider, useSounds } from "@/lib/sounds";
 import { Finder, AboutMe, Terminal, Projects, TextEdit, Safari } from "@/components/apps";
 
 const DOCK_ITEMS: DockItemData[] = [
@@ -34,18 +35,38 @@ export default function Home() {
   const [isBooted, setIsBooted] = useState(false);
 
   return (
-    <FileSystemProvider>
-      <DesktopProvider>
-        <WindowManagerProvider>
-          {!isBooted && <BootSequence onComplete={() => setIsBooted(true)} />}
-          <DesktopContent />
-        </WindowManagerProvider>
-      </DesktopProvider>
-    </FileSystemProvider>
+    <SoundProvider>
+      <FileSystemProvider>
+        <DesktopProvider>
+          <WindowManagerProvider>
+            {!isBooted && <BootSequence onComplete={() => setIsBooted(true)} />}
+            <DesktopContentWithSound />
+          </WindowManagerProvider>
+        </DesktopProvider>
+      </FileSystemProvider>
+    </SoundProvider>
   );
 }
 
-function DesktopContent() {
+// Wrapper to access sounds context
+function DesktopContentWithSound() {
+  const { playWindowOpen, isMuted, setMuted } = useSounds();
+  return (
+    <DesktopContent
+      onWindowOpen={playWindowOpen}
+      isMuted={isMuted}
+      onToggleMute={() => setMuted(!isMuted)}
+    />
+  );
+}
+
+interface DesktopContentProps {
+  onWindowOpen?: () => void;
+  isMuted?: boolean;
+  onToggleMute?: () => void;
+}
+
+function DesktopContent({ onWindowOpen, isMuted, onToggleMute }: DesktopContentProps) {
   const { windows, openWindow, focusWindow, getWindowsByApp } = useWindowManager();
   const { setWallpaper } = useDesktop();
   const [activeApp, setActiveApp] = useState("Finder");
@@ -96,9 +117,10 @@ function DesktopContent() {
         minHeight: 300,
         component,
       });
+      onWindowOpen?.();
     }
     setActiveApp(title);
-  }, [getWindowsByApp, focusWindow, openWindow]);
+  }, [getWindowsByApp, focusWindow, openWindow, onWindowOpen]);
 
   const handleDockItemClick = useCallback((id: string) => {
     const app = DOCK_ITEMS.find((item) => item.id === id);
@@ -189,7 +211,7 @@ function DesktopContent() {
 
   return (
     <>
-      <MenuBar activeApp={activeApp} />
+      <MenuBar activeApp={activeApp} isMuted={isMuted} onToggleMute={onToggleMute} />
 
       <main className="flex-1 relative" onClick={hideContextMenu}>
         <DesktopIcons

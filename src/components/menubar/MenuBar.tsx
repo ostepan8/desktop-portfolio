@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface MenuBarProps {
   activeApp?: string;
+  isMuted?: boolean;
+  onToggleMute?: () => void;
 }
 
 interface MenuItem {
@@ -26,7 +28,7 @@ const APPLE_MENU: MenuItem[] = [
   { label: "Shut Down...", disabled: true },
 ];
 
-export function MenuBar({ activeApp = "Finder" }: MenuBarProps) {
+export function MenuBar({ activeApp = "Finder", isMuted = true, onToggleMute }: MenuBarProps) {
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [time, setTime] = useState<string>("");
   const menuRef = useRef<HTMLDivElement>(null);
@@ -104,6 +106,13 @@ export function MenuBar({ activeApp = "Finder" }: MenuBarProps) {
       </div>
 
       <div className="flex items-center gap-1">
+        <button
+          onClick={onToggleMute}
+          className="px-1.5 py-0.5 rounded hover:bg-white/10 cursor-default transition-colors text-sm"
+          title={isMuted ? "Sound: Off" : "Sound: On"}
+        >
+          {isMuted ? "🔇" : "🔊"}
+        </button>
         <StatusIcon>🔋</StatusIcon>
         <StatusIcon>📶</StatusIcon>
         <StatusIcon>🔍</StatusIcon>
