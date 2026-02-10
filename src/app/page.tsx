@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { DesktopProvider } from "@/components/desktop";
+import { DesktopProvider, DesktopIcons, DEFAULT_DESKTOP_ICONS, type DesktopIconData } from "@/components/desktop";
 import { Dock, type DockItemData } from "@/components/dock";
 import { MenuBar } from "@/components/menubar";
 import { WindowManagerProvider, useWindowManager } from "@/components/window";
@@ -30,36 +30,46 @@ function DesktopContent() {
   const { windows, openWindow, focusWindow, getWindowsByApp } = useWindowManager();
   const [activeApp, setActiveApp] = useState("Finder");
 
-  const handleDockItemClick = useCallback((id: string) => {
-    const existingWindows = getWindowsByApp(id);
+  const openAppWindow = useCallback((appId: string, title: string, icon: string) => {
+    const existingWindows = getWindowsByApp(appId);
 
     if (existingWindows.length > 0) {
-      // Focus existing window
       focusWindow(existingWindows[0].id);
     } else {
-      // Open new window
-      const app = DOCK_ITEMS.find((item) => item.id === id);
-      if (!app) return;
-
-      const windowId = `${id}-${Date.now()}`;
+      const windowId = `${appId}-${Date.now()}`;
       openWindow({
         id: windowId,
-        appId: id,
-        title: app.label,
-        icon: app.icon,
+        appId: appId,
+        title: title,
+        icon: icon,
         x: 100 + Math.random() * 100,
         y: 50 + Math.random() * 50,
         width: 700,
         height: 500,
         minWidth: 400,
         minHeight: 300,
-        component: <AppContent appId={id} />,
+        component: <AppContent appId={appId} />,
       });
     }
-
-    const appName = DOCK_ITEMS.find((item) => item.id === id)?.label || "Finder";
-    setActiveApp(appName);
+    setActiveApp(title);
   }, [getWindowsByApp, focusWindow, openWindow]);
+
+  const handleDockItemClick = useCallback((id: string) => {
+    const app = DOCK_ITEMS.find((item) => item.id === id);
+    if (!app) return;
+    openAppWindow(id, app.label, app.icon);
+  }, [openAppWindow]);
+
+  const handleDesktopIconOpen = useCallback((id: string) => {
+    // Map desktop icon to app or action
+    const iconActions: Record<string, () => void> = {
+      "macintosh-hd": () => openAppWindow("finder", "Macintosh HD", "💻"),
+      "documents": () => openAppWindow("finder", "Documents", "📁"),
+      "projects": () => openAppWindow("projects", "Projects", "📂"),
+      "readme": () => openAppWindow("textedit", "README.txt", "📄"),
+    };
+    iconActions[id]?.();
+  }, [openAppWindow]);
 
   // Determine which apps are running
   const runningApps = new Set(windows.map((w) => w.appId));
@@ -69,20 +79,18 @@ function DesktopContent() {
     isRunning: runningApps.has(item.id),
   }));
 
+  // Desktop icons with open handlers
+  const desktopIcons: DesktopIconData[] = DEFAULT_DESKTOP_ICONS.map((icon) => ({
+    ...icon,
+    onOpen: () => handleDesktopIconOpen(icon.id),
+  }));
+
   return (
     <>
       <MenuBar activeApp={activeApp} />
 
       <main className="flex-1 relative">
-        {/* Desktop icons placeholder */}
-        <div className="absolute top-8 right-8 flex flex-col gap-2 items-center">
-          <div className="w-16 h-16 flex items-center justify-center cursor-pointer hover:bg-white/10 rounded-lg transition-colors">
-            <span className="text-5xl drop-shadow-lg">💻</span>
-          </div>
-          <span className="text-xs text-white text-center drop-shadow-lg font-medium">
-            Macintosh HD
-          </span>
-        </div>
+        <DesktopIcons icons={desktopIcons} onIconOpen={handleDesktopIconOpen} />
       </main>
 
       <Dock items={dockItems} onItemClick={handleDockItemClick} />
