@@ -1,9 +1,21 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform, type Variants } from "framer-motion";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { AppIcon } from "@/components/icons";
+
+const bounceVariants: Variants = {
+  idle: { y: 0 },
+  bouncing: {
+    y: [0, -20, 0, -12, 0, -6, 0],
+    transition: {
+      duration: 0.8,
+      times: [0, 0.2, 0.35, 0.5, 0.65, 0.8, 1],
+      ease: "easeOut",
+    },
+  },
+};
 
 export interface DockItemData {
   id: string;
@@ -108,6 +120,7 @@ interface DockIconProps {
 function DockIcon({ item, mouseX, onClick }: DockIconProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isBouncing, setIsBouncing] = useState(false);
 
   const distance = useTransform(mouseX, (val) => {
     const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
@@ -120,6 +133,16 @@ function DockIcon({ item, mouseX, onClick }: DockIconProps) {
     stiffness: 150,
     damping: 12,
   });
+
+  const handleClick = () => {
+    // Start bounce animation if app is not already running
+    if (!item.isRunning) {
+      setIsBouncing(true);
+      // Stop bouncing after animation completes (or when app opens)
+      setTimeout(() => setIsBouncing(false), 1500);
+    }
+    onClick?.();
+  };
 
   return (
     <div className="relative flex flex-col items-center">
@@ -139,8 +162,10 @@ function DockIcon({ item, mouseX, onClick }: DockIconProps) {
         className="rounded-xl flex items-center justify-center cursor-pointer"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        onClick={onClick}
-        whileTap={{ scale: 0.95 }}
+        onClick={handleClick}
+        variants={bounceVariants}
+        animate={isBouncing ? "bouncing" : "idle"}
+        whileTap={!isBouncing ? { scale: 0.95 } : undefined}
       >
         <AppIcon appId={item.id} size={48} className="select-none" />
       </motion.div>
