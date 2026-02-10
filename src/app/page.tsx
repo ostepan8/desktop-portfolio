@@ -16,6 +16,7 @@ import {
 import { Dock, type DockItemData } from "@/components/dock";
 import { MenuBar } from "@/components/menubar";
 import { WindowManagerProvider, useWindowManager } from "@/components/window";
+import { FileSystemProvider } from "@/lib/filesystem";
 
 const DOCK_ITEMS: DockItemData[] = [
   { id: "finder", icon: "📁", label: "Finder" },
@@ -29,11 +30,13 @@ const DOCK_ITEMS: DockItemData[] = [
 
 export default function Home() {
   return (
-    <DesktopProvider>
-      <WindowManagerProvider>
-        <DesktopContent />
-      </WindowManagerProvider>
-    </DesktopProvider>
+    <FileSystemProvider>
+      <DesktopProvider>
+        <WindowManagerProvider>
+          <DesktopContent />
+        </WindowManagerProvider>
+      </DesktopProvider>
+    </FileSystemProvider>
   );
 }
 
