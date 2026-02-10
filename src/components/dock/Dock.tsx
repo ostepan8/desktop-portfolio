@@ -147,19 +147,35 @@ function DockIcon({ item, mouseX, onClick }: DockIconProps) {
   return (
     <div className="relative flex flex-col items-center">
       <motion.div
-        className="absolute -top-8 px-3 py-1 bg-gray-900/90 text-white text-xs rounded-md whitespace-nowrap pointer-events-none"
-        initial={{ opacity: 0, y: 5 }}
-        animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 5 }}
-        transition={{ duration: 0.15 }}
+        className="absolute -top-10 px-3 py-1.5 bg-[#1e1e20]/95 backdrop-blur-md text-white text-[12px] font-medium rounded-lg whitespace-nowrap pointer-events-none shadow-lg"
+        style={{
+          boxShadow: "0 4px 12px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.1)",
+        }}
+        initial={{ opacity: 0, y: 6, scale: 0.95 }}
+        animate={{
+          opacity: isHovered ? 1 : 0,
+          y: isHovered ? 0 : 6,
+          scale: isHovered ? 1 : 0.95
+        }}
+        transition={{ duration: 0.12 }}
       >
         {item.label}
-        <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-gray-900/90" />
+        <div
+          className="absolute top-full left-1/2 -translate-x-1/2 -mt-px"
+          style={{
+            width: 0,
+            height: 0,
+            borderLeft: "6px solid transparent",
+            borderRight: "6px solid transparent",
+            borderTop: "6px solid rgba(30, 30, 32, 0.95)",
+          }}
+        />
       </motion.div>
 
       <motion.div
         ref={ref}
         style={{ width, height: width }}
-        className="rounded-xl flex items-center justify-center cursor-pointer"
+        className="rounded-xl flex items-center justify-center cursor-pointer relative group"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleClick}
@@ -167,7 +183,9 @@ function DockIcon({ item, mouseX, onClick }: DockIconProps) {
         animate={isBouncing ? "bouncing" : "idle"}
         whileTap={!isBouncing ? { scale: 0.95 } : undefined}
       >
-        <AppIcon appId={item.id} size={48} className="select-none" />
+        {/* Hover glow effect */}
+        <div className="absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/10 transition-colors duration-150" />
+        <AppIcon appId={item.id} size={48} className="select-none relative z-10" />
       </motion.div>
 
       {item.isRunning && (

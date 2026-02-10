@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 
 export interface ContextMenuItem {
@@ -22,6 +22,40 @@ interface ContextMenuProps {
 
 export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [position, setPosition] = useState({ x, y });
+
+  // Get non-divider items for keyboard navigation
+  const actionableItems = items.filter((item) => !item.divider && !item.disabled);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setFocusedIndex((prev) =>
+          prev < actionableItems.length - 1 ? prev + 1 : 0
+        );
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setFocusedIndex((prev) =>
+          prev > 0 ? prev - 1 : actionableItems.length - 1
+        );
+      } else if (e.key === "Enter" && focusedIndex >= 0) {
+        e.preventDefault();
+        const item = actionableItems[focusedIndex];
+        if (item?.action) {
+          item.action();
+          onClose();
+        }
+      }
+    },
+    [actionableItems, focusedIndex, onClose]
+  );
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -30,26 +64,18 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
       }
     };
 
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
-    const handleScroll = () => {
-      onClose();
-    };
+    const handleScroll = () => onClose();
 
     document.addEventListener("mousedown", handleClickOutside);
-    document.addEventListener("keydown", handleEscape);
+    document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("scroll", handleScroll, true);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleScroll, true);
     };
-  }, [onClose]);
+  }, [onClose, handleKeyDown]);
 
   // Adjust position to keep menu in viewport
   useEffect(() => {
@@ -68,63 +94,85 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
         adjustedY = viewportHeight - rect.height - 8;
       }
 
-      if (adjustedX !== x || adjustedY !== y) {
-        menuRef.current.style.left = `${adjustedX}px`;
-        menuRef.current.style.top = `${adjustedY}px`;
-      }
+      setPosition({ x: adjustedX, y: adjustedY });
     }
   }, [x, y]);
+
+  // Track which actionable item index corresponds to each visible item
+  let actionableIndex = -1;
 
   return (
     <motion.div
       ref={menuRef}
-      className="fixed z-[200] min-w-[200px] py-1 rounded-lg overflow-hidden shadow-2xl shadow-black/50"
+      className="fixed z-[200] min-w-[220px] py-1.5 rounded-xl overflow-hidden"
       style={{
-        left: x,
-        top: y,
-        backgroundColor: "rgba(40, 40, 45, 0.85)",
-        backdropFilter: "blur(20px) saturate(180%)",
-        WebkitBackdropFilter: "blur(20px) saturate(180%)",
-        border: "1px solid rgba(255, 255, 255, 0.1)",
+        left: position.x,
+        top: position.y,
+        backgroundColor: "rgba(30, 30, 32, 0.9)",
+        backdropFilter: "blur(50px) saturate(180%)",
+        WebkitBackdropFilter: "blur(50px) saturate(180%)",
+        boxShadow:
+          "0 24px 48px -12px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.1), inset 0 0.5px 0 rgba(255, 255, 255, 0.1)",
       }}
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.1 }}
+      initial={{ opacity: 0, scale: 0.95, y: -4 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95, y: -4 }}
+      transition={{ duration: 0.12, ease: [0.2, 0, 0.13, 1] }}
     >
-      {items.map((item, index) =>
-        item.divider ? (
-          <div
-            key={`divider-${index}`}
-            className="h-px bg-white/10 my-1 mx-2"
-          />
-        ) : (
+      {items.map((item, index) => {
+        if (item.divider) {
+          return (
+            <div
+              key={`divider-${index}`}
+              className="h-px bg-white/10 my-1.5 mx-3"
+            />
+          );
+        }
+
+        if (!item.disabled) {
+          actionableIndex++;
+        }
+        const isKeyboardFocused =
+          !item.disabled && actionableIndex === focusedIndex;
+
+        return (
           <button
             key={item.label}
             className={
-              "w-full px-3 py-1.5 flex items-center gap-2 text-left text-[13px] transition-colors " +
+              "w-full px-3 py-[5px] mx-1.5 flex items-center gap-3 text-left text-[13px] rounded-md transition-colors " +
+              "focus:outline-none " +
               (item.disabled
                 ? "text-white/30 cursor-default"
                 : item.danger
-                ? "text-red-400 hover:bg-red-500/30 cursor-default"
-                : "text-white/90 hover:bg-[#0058d1] cursor-default")
+                ? "text-red-400 hover:bg-red-500/20 active:bg-red-500/30"
+                : isKeyboardFocused
+                ? "bg-[#0058d1] text-white"
+                : "text-white/90 hover:bg-white/10 active:bg-white/15")
             }
+            style={{ width: "calc(100% - 12px)" }}
             onClick={() => {
               if (!item.disabled && item.action) {
                 item.action();
                 onClose();
               }
             }}
+            onMouseEnter={() => setFocusedIndex(-1)}
             disabled={item.disabled}
           >
-            {item.icon && <span className="w-4 text-center">{item.icon}</span>}
-            <span className="flex-1">{item.label}</span>
+            {item.icon && (
+              <span className="w-4 text-center text-[15px] opacity-80">
+                {item.icon}
+              </span>
+            )}
+            <span className="flex-1 font-normal">{item.label}</span>
             {item.shortcut && (
-              <span className="text-white/40 text-xs">{item.shortcut}</span>
+              <span className="text-white/40 text-[12px] font-medium tracking-wide">
+                {item.shortcut}
+              </span>
             )}
           </button>
-        )
-      )}
+        );
+      })}
     </motion.div>
   );
 }
