@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, useMotionValue, useSpring, useTransform, type Variants } from "framer-motion";
+import { motion, useMotionValue, useSpring, useTransform, type Variants, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { AppIcon } from "@/components/icons";
+import { ContextMenu, type ContextMenuItem } from "@/components/desktop/ContextMenu";
 
 const bounceVariants: Variants = {
   idle: { y: 0 },
@@ -28,11 +29,61 @@ export interface DockItemData {
 interface DockProps {
   items: DockItemData[];
   onItemClick?: (id: string) => void;
+  onQuitApp?: (id: string) => void;
+  onShowInFinder?: (id: string) => void;
 }
 
-export function Dock({ items, onItemClick }: DockProps) {
+export function Dock({ items, onItemClick, onQuitApp, onShowInFinder }: DockProps) {
   const isMobile = useIsMobile();
   const mouseX = useMotionValue(Infinity);
+  const [contextMenu, setContextMenu] = useState<{
+    x: number;
+    y: number;
+    items: ContextMenuItem[];
+  } | null>(null);
+
+  const handleContextMenu = (e: React.MouseEvent, item: DockItemData) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const menuItems: ContextMenuItem[] = [
+      {
+        label: item.isRunning ? "New Window" : "Open",
+        action: () => {
+          item.onClick?.();
+          onItemClick?.(item.id);
+        },
+      },
+      { label: "", divider: true },
+      {
+        label: "Options",
+        disabled: true,
+      },
+      {
+        label: "Show in Finder",
+        action: () => onShowInFinder?.(item.id),
+      },
+      { label: "", divider: true },
+    ];
+
+    if (item.isRunning) {
+      menuItems.push({
+        label: "Quit",
+        action: () => onQuitApp?.(item.id),
+        danger: true,
+      });
+    } else {
+      menuItems.push({
+        label: "Open",
+        action: () => {
+          item.onClick?.();
+          onItemClick?.(item.id);
+        },
+      });
+    }
+
+    setContextMenu({ x: e.clientX, y: e.clientY, items: menuItems });
+  };
 
   // Mobile: Simple bottom tab bar
   if (isMobile) {
@@ -70,7 +121,7 @@ export function Dock({ items, onItemClick }: DockProps) {
       transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
     >
       <motion.div
-        className="h-[68px] px-3 bg-white/10 glass rounded-2xl border border-white/20 flex items-end gap-1 pb-2"
+        className="px-2 bg-white/10 glass rounded-2xl border border-white/20 flex items-end gap-0.5 pb-1.5 pt-1.5"
         onMouseMove={(e) => mouseX.set(e.pageX)}
         onMouseLeave={() => mouseX.set(Infinity)}
       >
@@ -83,9 +134,22 @@ export function Dock({ items, onItemClick }: DockProps) {
               item.onClick?.();
               onItemClick?.(item.id);
             }}
+            onContextMenu={(e) => handleContextMenu(e, item)}
           />
         ))}
       </motion.div>
+
+      {/* Context Menu */}
+      <AnimatePresence>
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            items={contextMenu.items}
+            onClose={() => setContextMenu(null)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -115,9 +179,10 @@ interface DockIconProps {
   item: DockItemData;
   mouseX: ReturnType<typeof useMotionValue<number>>;
   onClick?: () => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
 }
 
-function DockIcon({ item, mouseX, onClick }: DockIconProps) {
+function DockIcon({ item, mouseX, onClick, onContextMenu }: DockIconProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isBouncing, setIsBouncing] = useState(false);
@@ -127,11 +192,12 @@ function DockIcon({ item, mouseX, onClick }: DockIconProps) {
     return val - bounds.x - bounds.width / 2;
   });
 
-  const widthSync = useTransform(distance, [-150, 0, 150], [48, 72, 48]);
+  // More macOS-like magnification: larger base size, smoother falloff
+  const widthSync = useTransform(distance, [-150, -75, 0, 75, 150], [54, 62, 72, 62, 54]);
   const width = useSpring(widthSync, {
-    mass: 0.1,
-    stiffness: 150,
-    damping: 12,
+    mass: 0.05,
+    stiffness: 200,
+    damping: 15,
   });
 
   const handleClick = () => {
@@ -179,13 +245,16 @@ function DockIcon({ item, mouseX, onClick }: DockIconProps) {
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
         onClick={handleClick}
+        onContextMenu={onContextMenu}
         variants={bounceVariants}
         animate={isBouncing ? "bouncing" : "idle"}
         whileTap={!isBouncing ? { scale: 0.95 } : undefined}
       >
         {/* Hover glow effect */}
         <div className="absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/10 transition-colors duration-150" />
-        <AppIcon appId={item.id} size={48} className="select-none relative z-10" />
+        <div className="w-full h-full flex items-center justify-center relative z-10 p-1.5">
+          <AppIcon appId={item.id} size={64} className="select-none w-full h-full" />
+        </div>
       </motion.div>
 
       {item.isRunning && (

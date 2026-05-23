@@ -23,8 +23,8 @@ const PROJECTS: Project[] = [
     longDescription: "This portfolio itself! Built to showcase my work in a unique, interactive way. Features a fully functional window management system, file browser, terminal, and more.",
     thumbnail: "🖥️",
     tech: ["React", "Next.js", "TypeScript", "Tailwind", "Framer Motion"],
-    github: "https://github.com",
-    demo: "#",
+    github: "https://github.com/ostepan/desktop-portfolio",
+    demo: "https://owen-stepan.com",
     featured: true,
   },
   {
@@ -34,8 +34,7 @@ const PROJECTS: Project[] = [
     longDescription: "A full-stack chat application with streaming responses, conversation history, and multiple AI model support. Features a clean, modern UI with dark mode.",
     thumbnail: "🤖",
     tech: ["React", "Node.js", "OpenAI", "WebSocket", "PostgreSQL"],
-    github: "https://github.com",
-    demo: "https://example.com",
+    github: "https://github.com/ostepan",
     featured: true,
   },
   {
@@ -45,7 +44,7 @@ const PROJECTS: Project[] = [
     longDescription: "A complete e-commerce solution with product management, shopping cart, Stripe integration, and order tracking. Includes admin dashboard for inventory management.",
     thumbnail: "🛒",
     tech: ["Next.js", "Stripe", "Prisma", "PostgreSQL", "Tailwind"],
-    github: "https://github.com",
+    github: "https://github.com/ostepan",
     featured: false,
   },
   {
@@ -55,7 +54,7 @@ const PROJECTS: Project[] = [
     longDescription: "A Trello-like task management application with drag-and-drop boards, real-time collaboration, and team features. Includes notifications and activity feeds.",
     thumbnail: "📋",
     tech: ["React", "Firebase", "TypeScript", "DnD Kit"],
-    github: "https://github.com",
+    github: "https://github.com/ostepan",
     demo: "https://example.com",
     featured: false,
   },
@@ -76,7 +75,7 @@ const PROJECTS: Project[] = [
     longDescription: "A personal blog built with MDX for writing technical articles. Features syntax highlighting, table of contents, reading time estimates, and RSS feed.",
     thumbnail: "📝",
     tech: ["Next.js", "MDX", "Tailwind", "Vercel"],
-    github: "https://github.com",
+    github: "https://github.com/ostepan",
     demo: "https://example.com",
     featured: false,
   },
@@ -104,10 +103,10 @@ export function Projects() {
         </div>
 
         {/* Tech filter */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hidden">
           <button
             className={
-              "px-3 py-1 rounded-full text-xs font-medium transition-colors " +
+              "px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap shrink-0 " +
               (!filter
                 ? "bg-purple-500 text-white"
                 : "bg-white/10 text-white/70 hover:bg-white/20")
@@ -120,7 +119,7 @@ export function Projects() {
             <button
               key={tech}
               className={
-                "px-3 py-1 rounded-full text-xs font-medium transition-colors " +
+                "px-3 py-1 rounded-full text-xs font-medium transition-colors whitespace-nowrap shrink-0 " +
                 (filter === tech
                   ? "bg-purple-500 text-white"
                   : "bg-white/10 text-white/70 hover:bg-white/20")
@@ -151,7 +150,7 @@ export function Projects() {
               onClick={() => setSelectedProject(project)}
             >
               {project.featured && (
-                <div className="absolute top-2 right-2 px-2 py-0.5 bg-purple-500 rounded text-xs font-medium">
+                <div className="absolute top-2 right-2 px-2 py-0.5 bg-purple-500 text-white rounded text-xs font-medium">
                   Featured
                 </div>
               )}

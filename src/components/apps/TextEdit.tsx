@@ -32,6 +32,14 @@ export function TextEdit({ fileId, onTitleChange }: TextEditProps) {
     }
   }, [fileId, getItem, onTitleChange]);
 
+  const handleSave = useCallback(() => {
+    if (currentFileId) {
+      updateItem(currentFileId, { content });
+      setIsDirty(false);
+      setLastSaved(new Date());
+    }
+  }, [currentFileId, content, updateItem]);
+
   // Auto-save after 2 seconds of inactivity
   useEffect(() => {
     if (!isDirty || !currentFileId) return;
@@ -41,15 +49,7 @@ export function TextEdit({ fileId, onTitleChange }: TextEditProps) {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [content, isDirty, currentFileId]);
-
-  const handleSave = useCallback(() => {
-    if (currentFileId) {
-      updateItem(currentFileId, { content });
-      setIsDirty(false);
-      setLastSaved(new Date());
-    }
-  }, [currentFileId, content, updateItem]);
+  }, [content, isDirty, currentFileId, handleSave]);
 
   const handleContentChange = useCallback((newContent: string) => {
     setContent(newContent);

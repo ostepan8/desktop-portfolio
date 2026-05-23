@@ -15,6 +15,10 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [viewMode, setViewMode] = useState<"icons" | "list">("icons");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
+  const [newFolderName, setNewFolderName] = useState("");
+  // Track which sidebar item is active for highlighting (avoids dual-highlight when both Desktop and Macintosh HD map to root)
+  const [activeSidebarItem, setActiveSidebarItem] = useState<string | null>(initialPath === null ? "desktop" : null);
 
   // Get current folder's children
   const currentChildren = useMemo(() => {
@@ -44,9 +48,9 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
   // Sidebar favorites
   const favorites = useMemo(() => {
     return [
-      { id: null, name: "Desktop", icon: "🖥️" },
-      { id: "documents", name: "Documents", icon: "📁" },
-      { id: "projects", name: "Projects", icon: "📂" },
+      { id: null as string | null, sidebarKey: "desktop", name: "Desktop", icon: "🖥️" },
+      { id: "documents" as string | null, sidebarKey: "documents", name: "Documents", icon: "📁" },
+      { id: "projects" as string | null, sidebarKey: "projects", name: "Projects", icon: "📂" },
     ];
   }, []);
 
@@ -70,6 +74,7 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
   const handleItemDoubleClick = useCallback((item: FileSystemItem) => {
     if (item.type === "folder") {
       setCurrentFolderId(item.id);
+      setActiveSidebarItem(null);
       setSelectedIds(new Set());
       setSearchQuery("");
     } else if (item.type === "link" && item.url) {
@@ -87,16 +92,22 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
     if (currentFolderId) {
       const currentFolder = getItem(currentFolderId);
       setCurrentFolderId(currentFolder?.parentId ?? null);
+      setActiveSidebarItem(null);
       setSelectedIds(new Set());
     }
   }, [currentFolderId, getItem]);
 
   const handleNewFolder = useCallback(() => {
-    const name = prompt("Enter folder name:");
-    if (name?.trim()) {
-      createFolder(name.trim(), currentFolderId);
-    }
-  }, [createFolder, currentFolderId]);
+    setShowNewFolderDialog(true);
+    setNewFolderName("");
+  }, []);
+
+  const createNewFolder = useCallback(() => {
+    const name = newFolderName.trim() || "untitled folder";
+    createFolder(name, currentFolderId);
+    setShowNewFolderDialog(false);
+    setNewFolderName("");
+  }, [newFolderName, createFolder, currentFolderId]);
 
   return (
     <div className="h-full flex bg-[#1e1e1e] text-white">
@@ -109,15 +120,16 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
         <div className="px-2">
           {favorites.map((fav) => (
             <button
-              key={fav.id ?? "desktop"}
+              key={fav.sidebarKey}
               className={
                 "w-full flex items-center gap-2.5 px-2 py-[5px] text-[13px] rounded-md transition-all " +
-                (currentFolderId === fav.id && !searchQuery
+                (activeSidebarItem === fav.sidebarKey && !searchQuery
                   ? "bg-white/15 text-white"
                   : "text-white/80 hover:bg-white/8 active:bg-white/12")
               }
               onClick={() => {
                 setCurrentFolderId(fav.id);
+                setActiveSidebarItem(fav.sidebarKey);
                 setSearchQuery("");
                 setSelectedIds(new Set());
               }}
@@ -136,12 +148,13 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
           <button
             className={
               "w-full flex items-center gap-2.5 px-2 py-[5px] text-[13px] rounded-md transition-all " +
-              (currentFolderId === null && !searchQuery
+              (activeSidebarItem === "macintosh-hd" && !searchQuery
                 ? "bg-white/15 text-white"
                 : "text-white/80 hover:bg-white/8 active:bg-white/12")
             }
             onClick={() => {
               setCurrentFolderId(null);
+              setActiveSidebarItem("macintosh-hd");
               setSearchQuery("");
             }}
           >
@@ -198,6 +211,7 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
               className="text-white/60 hover:text-white shrink-0"
               onClick={() => {
                 setCurrentFolderId(null);
+                setActiveSidebarItem("macintosh-hd");
                 setSearchQuery("");
               }}
             >
@@ -214,6 +228,7 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
                   }
                   onClick={() => {
                     setCurrentFolderId(item.id);
+                    setActiveSidebarItem(null);
                     setSearchQuery("");
                   }}
                 >
@@ -340,6 +355,41 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
           {selectedIds.size > 0 && `, ${selectedIds.size} selected`}
         </div>
       </div>
+
+      {/* New folder dialog */}
+      {showNewFolderDialog && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#2d2d2d] rounded-lg p-4 w-80 border border-white/10 shadow-2xl">
+            <h3 className="text-white font-medium mb-3">New Folder</h3>
+            <input
+              type="text"
+              value={newFolderName}
+              onChange={(e) => setNewFolderName(e.target.value)}
+              placeholder="untitled folder"
+              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm outline-none focus:border-white/30"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") createNewFolder();
+                if (e.key === "Escape") setShowNewFolderDialog(false);
+              }}
+            />
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                className="px-3 py-1.5 text-sm text-white/70 hover:bg-white/10 rounded transition-colors"
+                onClick={() => setShowNewFolderDialog(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                onClick={createNewFolder}
+              >
+                Create
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface BootSequenceProps {
@@ -10,13 +10,16 @@ interface BootSequenceProps {
 export function BootSequence({ onComplete }: BootSequenceProps) {
   const [stage, setStage] = useState<"logo" | "progress" | "done">("logo");
   const [progress, setProgress] = useState(0);
+  // Use a ref to avoid re-running effects when onComplete changes identity
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     // Check if we should skip the boot sequence
     if (typeof window !== "undefined") {
       const hasBooted = sessionStorage.getItem("hasBooted");
       if (hasBooted) {
-        onComplete();
+        onCompleteRef.current();
         return;
       }
     }
@@ -27,7 +30,7 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
     }, 1000);
 
     return () => clearTimeout(logoTimer);
-  }, [onComplete]);
+  }, []);
 
   useEffect(() => {
     if (stage !== "progress") return;
@@ -58,11 +61,11 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
           sessionStorage.setItem("hasBooted", "true");
         }
         // Delay a bit for fade out animation
-        setTimeout(onComplete, 500);
+        setTimeout(() => onCompleteRef.current(), 500);
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [progress, onComplete]);
+  }, [progress]);
 
   return (
     <AnimatePresence>

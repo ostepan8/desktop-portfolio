@@ -16,14 +16,16 @@ export interface WindowState {
   minWidth?: number;
   minHeight?: number;
   isMinimized: boolean;
+  isMinimizing: boolean;
   component: ReactNode;
 }
 
 interface WindowManagerContextType {
   windows: WindowState[];
   activeWindowId: string | null;
-  openWindow: (config: Omit<WindowState, "isMinimized">) => void;
+  openWindow: (config: Omit<WindowState, "isMinimized" | "isMinimizing">) => void;
   closeWindow: (id: string) => void;
+  closeWindowsByApp: (appId: string) => void;
   minimizeWindow: (id: string) => void;
   focusWindow: (id: string) => void;
   getWindowsByApp: (appId: string) => WindowState[];
@@ -48,10 +50,11 @@ export function WindowManagerProvider({ children }: WindowManagerProviderProps) 
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
   const [windowOrder, setWindowOrder] = useState<string[]>([]);
 
-  const openWindow = useCallback((config: Omit<WindowState, "isMinimized">) => {
+  const openWindow = useCallback((config: Omit<WindowState, "isMinimized" | "isMinimizing">) => {
     const newWindow: WindowState = {
       ...config,
       isMinimized: false,
+      isMinimizing: false,
     };
     setWindows((prev) => [...prev, newWindow]);
     setWindowOrder((prev) => [...prev, config.id]);
@@ -67,14 +70,34 @@ export function WindowManagerProvider({ children }: WindowManagerProviderProps) 
     }
   }, [activeWindowId, windowOrder]);
 
+  const closeWindowsByApp = useCallback((appId: string) => {
+    const windowsToClose = windows.filter((w) => w.appId === appId).map((w) => w.id);
+    setWindows((prev) => prev.filter((w) => w.appId !== appId));
+    setWindowOrder((prev) => prev.filter((wId) => !windowsToClose.includes(wId)));
+    if (activeWindowId && windowsToClose.includes(activeWindowId)) {
+      const remaining = windowOrder.filter((wId) => !windowsToClose.includes(wId));
+      setActiveWindowId(remaining.length > 0 ? remaining[remaining.length - 1] : null);
+    }
+  }, [windows, activeWindowId, windowOrder]);
+
   const minimizeWindow = useCallback((id: string) => {
+    // First, trigger the minimizing animation
     setWindows((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, isMinimized: true } : w))
+      prev.map((w) => (w.id === id ? { ...w, isMinimizing: true } : w))
     );
+
+    // Update active window immediately
     if (activeWindowId === id) {
       const remaining = windowOrder.filter((wId) => wId !== id);
       setActiveWindowId(remaining.length > 0 ? remaining[remaining.length - 1] : null);
     }
+
+    // After animation duration, actually minimize the window
+    setTimeout(() => {
+      setWindows((prev) =>
+        prev.map((w) => (w.id === id ? { ...w, isMinimized: true, isMinimizing: false } : w))
+      );
+    }, 400); // Match animation duration
   }, [activeWindowId, windowOrder]);
 
   const focusWindow = useCallback((id: string) => {
@@ -82,7 +105,7 @@ export function WindowManagerProvider({ children }: WindowManagerProviderProps) 
     setActiveWindowId(id);
     // Restore if minimized
     setWindows((prev) =>
-      prev.map((w) => (w.id === id ? { ...w, isMinimized: false } : w))
+      prev.map((w) => (w.id === id ? { ...w, isMinimized: false, isMinimizing: false } : w))
     );
   }, []);
 
@@ -131,6 +154,7 @@ export function WindowManagerProvider({ children }: WindowManagerProviderProps) 
         activeWindowId,
         openWindow,
         closeWindow,
+        closeWindowsByApp,
         minimizeWindow,
         focusWindow,
         getWindowsByApp,
@@ -163,6 +187,7 @@ export function WindowManagerProvider({ children }: WindowManagerProviderProps) 
                     minWidth={w.minWidth}
                     minHeight={w.minHeight}
                     isActive={activeWindowId === w.id}
+                    isMinimizing={w.isMinimizing}
                     onClose={() => closeWindow(w.id)}
                     onMinimize={() => minimizeWindow(w.id)}
                     onFocus={() => focusWindow(w.id)}

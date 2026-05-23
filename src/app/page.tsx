@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import {
   DesktopProvider,
@@ -10,6 +10,8 @@ import {
   WALLPAPERS,
   ContextMenu,
   BootSequence,
+  AboutThisMac,
+  Spotlight,
   type DesktopIconData,
   type ContextMenuItem,
   type WallpaperKey,
@@ -67,14 +69,28 @@ interface DesktopContentProps {
 }
 
 function DesktopContent({ onWindowOpen, isMuted, onToggleMute }: DesktopContentProps) {
-  const { windows, openWindow, focusWindow, getWindowsByApp } = useWindowManager();
+  const { windows, activeWindowId, openWindow, focusWindow, closeWindow, minimizeWindow, getWindowsByApp, closeWindowsByApp } = useWindowManager();
   const { setWallpaper } = useDesktop();
   const [activeApp, setActiveApp] = useState("Finder");
+  const [showAboutDialog, setShowAboutDialog] = useState(false);
+  const [showSpotlight, setShowSpotlight] = useState(false);
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
     items: ContextMenuItem[];
   } | null>(null);
+
+  // Cmd+Space to open Spotlight
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey && e.code === "Space") {
+        e.preventDefault();
+        setShowSpotlight((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const openAppWindow = useCallback((appId: string, title: string, icon: string, initialPath?: string | null) => {
     // For finder, always open a new window if path is specified
@@ -89,7 +105,9 @@ function DesktopContent({ onWindowOpen, isMuted, onToggleMute }: DesktopContentP
       // Determine which component to render
       let component: React.ReactNode;
       if (appId === "finder") {
-        component = <Finder initialPath={initialPath ?? null} />;
+        component = <Finder initialPath={initialPath ?? null} onOpenFile={(item) => {
+          openAppWindow("textedit", item.name, "📝", item.id);
+        }} />;
       } else if (appId === "about") {
         component = <AboutMe />;
       } else if (appId === "terminal") {
@@ -106,15 +124,25 @@ function DesktopContent({ onWindowOpen, isMuted, onToggleMute }: DesktopContentP
         component = <AppContent appId={appId} />;
       }
 
+      // Calculate window dimensions
+      const windowWidth = appId === "finder" ? 800 : 700;
+      const windowHeight = appId === "finder" ? 500 : 500;
+
+      // Center window on screen with slight random offset
+      const screenWidth = typeof window !== "undefined" ? window.innerWidth : 1200;
+      const screenHeight = typeof window !== "undefined" ? window.innerHeight : 800;
+      const centerX = (screenWidth - windowWidth) / 2 + (Math.random() - 0.5) * 60;
+      const centerY = (screenHeight - windowHeight) / 2 - 40 + (Math.random() - 0.5) * 40;
+
       openWindow({
         id: windowId,
         appId: appId,
         title: title,
         icon: icon,
-        x: 100 + Math.random() * 100,
-        y: 50 + Math.random() * 50,
-        width: appId === "finder" ? 800 : 700,
-        height: appId === "finder" ? 500 : 500,
+        x: Math.max(50, centerX),
+        y: Math.max(40, centerY),
+        width: windowWidth,
+        height: windowHeight,
         minWidth: appId === "finder" ? 600 : 400,
         minHeight: 300,
         component,
@@ -128,6 +156,31 @@ function DesktopContent({ onWindowOpen, isMuted, onToggleMute }: DesktopContentP
     const app = DOCK_ITEMS.find((item) => item.id === id);
     if (!app) return;
     openAppWindow(id, app.label, app.icon);
+  }, [openAppWindow]);
+
+  const handleQuitApp = useCallback((id: string) => {
+    closeWindowsByApp(id);
+  }, [closeWindowsByApp]);
+
+  const handleShowInFinder = useCallback(() => {
+    // Open Finder with the Applications folder selected
+    openAppWindow("finder", "Applications", "📁", null);
+  }, [openAppWindow]);
+
+  const handleSpotlightOpenApp = useCallback((appId: string) => {
+    const app = DOCK_ITEMS.find((item) => item.id === appId);
+    if (app) {
+      openAppWindow(appId, app.label, app.icon);
+    }
+  }, [openAppWindow]);
+
+  const handleSpotlightOpenFile = useCallback((fileId: string) => {
+    // Map file/folder IDs to actions
+    const fileActions: Record<string, () => void> = {
+      documents: () => openAppWindow("finder", "Documents", "📁", "documents"),
+      readme: () => openAppWindow("textedit", "README.txt", "📄"),
+    };
+    fileActions[fileId]?.();
   }, [openAppWindow]);
 
   const handleDesktopIconOpen = useCallback((id: string) => {
@@ -213,7 +266,28 @@ function DesktopContent({ onWindowOpen, isMuted, onToggleMute }: DesktopContentP
 
   return (
     <>
-      <MenuBar activeApp={activeApp} isMuted={isMuted} onToggleMute={onToggleMute} />
+      <MenuBar
+        activeApp={activeApp}
+        isMuted={isMuted}
+        onToggleMute={onToggleMute}
+        windows={windows.map(w => ({ id: w.id, title: w.title, appId: w.appId }))}
+        activeWindowId={activeWindowId}
+        onFocusWindow={focusWindow}
+        onMinimizeAll={() => windows.forEach(w => minimizeWindow(w.id))}
+        onCloseWindow={activeWindowId ? () => closeWindow(activeWindowId) : undefined}
+        onAbout={() => setShowAboutDialog(true)}
+      />
+
+      {/* About This Mac dialog */}
+      <AboutThisMac isOpen={showAboutDialog} onClose={() => setShowAboutDialog(false)} />
+
+      {/* Spotlight Search */}
+      <Spotlight
+        isOpen={showSpotlight}
+        onClose={() => setShowSpotlight(false)}
+        onOpenApp={handleSpotlightOpenApp}
+        onOpenFile={handleSpotlightOpenFile}
+      />
 
       <main className="flex-1 relative" onClick={hideContextMenu}>
         <DesktopIcons
@@ -224,7 +298,12 @@ function DesktopContent({ onWindowOpen, isMuted, onToggleMute }: DesktopContentP
         />
       </main>
 
-      <Dock items={dockItems} onItemClick={handleDockItemClick} />
+      <Dock
+        items={dockItems}
+        onItemClick={handleDockItemClick}
+        onQuitApp={handleQuitApp}
+        onShowInFinder={handleShowInFinder}
+      />
 
       {/* Context Menu */}
       <AnimatePresence>
