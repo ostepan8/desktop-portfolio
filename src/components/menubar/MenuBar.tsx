@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useIsMobile } from "@/lib/useIsMobile";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { NotificationCenter } from "./NotificationCenter";
 
 // Control Center Panel

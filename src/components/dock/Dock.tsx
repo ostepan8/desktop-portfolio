@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { motion, useMotionValue, useSpring, useTransform, type Variants, AnimatePresence } from "framer-motion";
-import { useIsMobile } from "@/lib/useIsMobile";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { AppIcon } from "@/components/icons";
 import { ContextMenu, type ContextMenuItem } from "@/components/desktop/ContextMenu";
 

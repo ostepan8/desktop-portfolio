@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useIsMobile } from "@/lib/useIsMobile";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { FolderIcon, FileIcon, DriveIcon } from "@/components/icons";
 
 export interface DesktopIconData {

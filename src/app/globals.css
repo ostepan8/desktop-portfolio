@@ -33,13 +33,21 @@
 
   /* macOS colors */
   --macos-bg: #1e1e1e;
+  --macos-bg-1: #1a1a1a;          /* deepest panel surface */
+  --macos-bg-2: #252525;          /* card surface */
+  --macos-bg-3: #2d2d2d;          /* raised surface (dialogs, hovered rows) */
+  --macos-bg-4: #3a3a3a;          /* titlebar / chrome */
   --macos-menubar: rgba(30, 30, 30, 0.8);
   --macos-dock: rgba(30, 30, 30, 0.5);
   --macos-window: rgba(40, 40, 40, 0.95);
   --macos-window-titlebar: #3a3a3a;
   --macos-accent: #007aff;
+  --macos-accent-bright: #0a84ff; /* used on dark backgrounds */
+  --macos-accent-deep: #0058d1;   /* selection highlight */
   --macos-text: #ffffff;
   --macos-text-secondary: rgba(255, 255, 255, 0.6);
+  --macos-surface-hover: rgba(255, 255, 255, 0.08);
+  --macos-surface-active: rgba(255, 255, 255, 0.14);
 
   /* Traffic light colors */
   --traffic-close: #ff5f57;

@@ -74,7 +74,7 @@ const mobileWindowVariants: Variants = {
     },
   },
 };
-import { useIsMobile } from "@/lib/useIsMobile";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { AppIcon } from "@/components/icons";
 
 export interface WindowProps {
