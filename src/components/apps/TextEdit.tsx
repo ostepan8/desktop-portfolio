@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useFileSystem } from "@/lib/filesystem";
+import { PromptDialog } from "@/components/ui/PromptDialog";
 
 interface TextEditProps {
   fileId?: string;
@@ -16,7 +17,6 @@ export function TextEdit({ fileId, onTitleChange }: TextEditProps) {
   const [isDirty, setIsDirty] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showNewFileDialog, setShowNewFileDialog] = useState(false);
-  const [newFileName, setNewFileName] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Load file content on mount
@@ -61,20 +61,22 @@ export function TextEdit({ fileId, onTitleChange }: TextEditProps) {
       handleSave();
     }
     setShowNewFileDialog(true);
-    setNewFileName("");
   }, [isDirty, currentFileId, handleSave]);
 
-  const createNewFile = useCallback(() => {
-    const name = newFileName.trim() || "Untitled.txt";
-    const file = createFile(name, null, "");
-    setCurrentFileId(file.id);
-    setFileName(name);
-    setContent("");
-    setIsDirty(false);
-    setLastSaved(null);
-    setShowNewFileDialog(false);
-    onTitleChange?.(name);
-  }, [newFileName, createFile, onTitleChange]);
+  const createNewFile = useCallback(
+    (rawName: string) => {
+      const name = rawName.trim() || "Untitled.txt";
+      const file = createFile(name, null, "");
+      setCurrentFileId(file.id);
+      setFileName(name);
+      setContent("");
+      setIsDirty(false);
+      setLastSaved(null);
+      setShowNewFileDialog(false);
+      onTitleChange?.(name);
+    },
+    [createFile, onTitleChange],
+  );
 
   // Word and character count
   const stats = {
@@ -157,40 +159,14 @@ export function TextEdit({ fileId, onTitleChange }: TextEditProps) {
         </div>
       </div>
 
-      {/* New file dialog */}
-      {showNewFileDialog && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#2d2d2d] rounded-lg p-4 w-80 border border-white/10 shadow-2xl">
-            <h3 className="text-white font-medium mb-3">New File</h3>
-            <input
-              type="text"
-              value={newFileName}
-              onChange={(e) => setNewFileName(e.target.value)}
-              placeholder="File name (e.g., notes.txt)"
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm outline-none focus:border-white/30"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") createNewFile();
-                if (e.key === "Escape") setShowNewFileDialog(false);
-              }}
-            />
-            <div className="flex justify-end gap-2 mt-4">
-              <button
-                className="px-3 py-1.5 text-sm text-white/70 hover:bg-white/10 rounded transition-colors"
-                onClick={() => setShowNewFileDialog(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                onClick={createNewFile}
-              >
-                Create
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PromptDialog
+        isOpen={showNewFileDialog}
+        title="New File"
+        placeholder="File name (e.g., notes.txt)"
+        submitLabel="Create"
+        onSubmit={createNewFile}
+        onCancel={() => setShowNewFileDialog(false)}
+      />
     </div>
   );
 }

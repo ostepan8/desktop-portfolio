@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useFileSystem, type FileSystemItem } from "@/lib/filesystem";
+import { PromptDialog } from "@/components/ui/PromptDialog";
 
 interface FinderProps {
   initialPath?: string | null;
@@ -16,7 +17,6 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
   const [viewMode, setViewMode] = useState<"icons" | "list">("icons");
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
-  const [newFolderName, setNewFolderName] = useState("");
   // Track which sidebar item is active for highlighting (avoids dual-highlight when both Desktop and Macintosh HD map to root)
   const [activeSidebarItem, setActiveSidebarItem] = useState<string | null>(initialPath === null ? "desktop" : null);
 
@@ -99,15 +99,16 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
 
   const handleNewFolder = useCallback(() => {
     setShowNewFolderDialog(true);
-    setNewFolderName("");
   }, []);
 
-  const createNewFolder = useCallback(() => {
-    const name = newFolderName.trim() || "untitled folder";
-    createFolder(name, currentFolderId);
-    setShowNewFolderDialog(false);
-    setNewFolderName("");
-  }, [newFolderName, createFolder, currentFolderId]);
+  const createNewFolder = useCallback(
+    (rawName: string) => {
+      const name = rawName.trim() || "untitled folder";
+      createFolder(name, currentFolderId);
+      setShowNewFolderDialog(false);
+    },
+    [createFolder, currentFolderId],
+  );
 
   return (
     <div className="h-full flex bg-[#1e1e1e] text-white">
@@ -356,40 +357,14 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
         </div>
       </div>
 
-      {/* New folder dialog */}
-      {showNewFolderDialog && (
-        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-[#2d2d2d] rounded-lg p-4 w-80 border border-white/10 shadow-2xl">
-            <h3 className="text-white font-medium mb-3">New Folder</h3>
-            <input
-              type="text"
-              value={newFolderName}
-              onChange={(e) => setNewFolderName(e.target.value)}
-              placeholder="untitled folder"
-              className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded text-white text-sm outline-none focus:border-white/30"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === "Enter") createNewFolder();
-                if (e.key === "Escape") setShowNewFolderDialog(false);
-              }}
-            />
-            <div className="flex justify-end gap-2 mt-4">
-              <button
-                className="px-3 py-1.5 text-sm text-white/70 hover:bg-white/10 rounded transition-colors"
-                onClick={() => setShowNewFolderDialog(false)}
-              >
-                Cancel
-              </button>
-              <button
-                className="px-3 py-1.5 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                onClick={createNewFolder}
-              >
-                Create
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <PromptDialog
+        isOpen={showNewFolderDialog}
+        title="New Folder"
+        placeholder="untitled folder"
+        submitLabel="Create"
+        onSubmit={createNewFolder}
+        onCancel={() => setShowNewFolderDialog(false)}
+      />
     </div>
   );
 }
