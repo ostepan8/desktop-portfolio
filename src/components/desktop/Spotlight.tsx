@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppIcon } from "@/components/icons";
+import { SEARCHABLE_APPS } from "@/constants/apps";
 
 interface SpotlightResult {
   id: string;
@@ -21,15 +22,9 @@ interface SpotlightProps {
   onOpenFile: (fileId: string) => void;
 }
 
-// Available apps and files for search
-const SEARCHABLE_ITEMS: SpotlightResult[] = [
-  { id: "finder", type: "app", name: "Finder", subtitle: "Application", appId: "finder" },
-  { id: "safari", type: "app", name: "Safari", subtitle: "Application", appId: "safari" },
-  { id: "terminal", type: "app", name: "Terminal", subtitle: "Application", appId: "terminal" },
-  { id: "textedit", type: "app", name: "TextEdit", subtitle: "Application", appId: "textedit" },
-  { id: "about", type: "app", name: "About Me", subtitle: "Application", appId: "about" },
-  { id: "projects", type: "app", name: "Projects", subtitle: "Application", appId: "projects" },
-  { id: "settings", type: "app", name: "Settings", subtitle: "Application", appId: "settings" },
+// Files/folders reachable from Spotlight — derived from the desktop seed.
+// Apps come from the shared registry so we don't have to re-list them here.
+const SPOTLIGHT_FILES: SpotlightResult[] = [
   { id: "documents", type: "folder", name: "Documents", subtitle: "Folder" },
   { id: "readme", type: "file", name: "README.txt", subtitle: "Text File" },
 ];
@@ -39,12 +34,29 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const allItems = useMemo<SpotlightResult[]>(
+    () => [
+      ...SEARCHABLE_APPS.map((app) => ({
+        id: app.id,
+        type: "app" as const,
+        name: app.label,
+        subtitle: "Application",
+        appId: app.id,
+      })),
+      ...SPOTLIGHT_FILES,
+    ],
+    [],
+  );
+
   const results = query.trim()
-    ? SEARCHABLE_ITEMS.filter((item) =>
-        item.name.toLowerCase().includes(query.toLowerCase()) ||
-        item.subtitle?.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 8)
-    : SEARCHABLE_ITEMS.slice(0, 6);
+    ? allItems
+        .filter(
+          (item) =>
+            item.name.toLowerCase().includes(query.toLowerCase()) ||
+            item.subtitle?.toLowerCase().includes(query.toLowerCase()),
+        )
+        .slice(0, 8)
+    : allItems.slice(0, 6);
 
   const handleSelect = useCallback((result: SpotlightResult) => {
     if (result.type === "app" && result.appId) {
