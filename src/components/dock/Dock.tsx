@@ -5,6 +5,8 @@ import { motion, useMotionValue, useSpring, useTransform, type Variants, Animate
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { AppIcon } from "@/components/icons";
 import { ContextMenu, type ContextMenuItem } from "@/components/desktop/ContextMenu";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { Z_INDEX } from "@/constants/layout";
 
 const bounceVariants: Variants = {
   idle: { y: 0 },
@@ -89,7 +91,8 @@ export function Dock({ items, onItemClick, onQuitApp, onShowInFinder }: DockProp
   if (isMobile) {
     return (
       <motion.div
-        className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom"
+        className="fixed bottom-0 left-0 right-0 safe-area-bottom"
+        style={{ zIndex: Z_INDEX.dock }}
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
@@ -115,7 +118,8 @@ export function Dock({ items, onItemClick, onQuitApp, onShowInFinder }: DockProp
   // Desktop: Full dock with magnification
   return (
     <motion.div
-      className="absolute bottom-2 left-1/2 -translate-x-1/2 z-50"
+      className="absolute bottom-2 left-1/2 -translate-x-1/2"
+      style={{ zIndex: Z_INDEX.dock }}
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
@@ -212,31 +216,7 @@ function DockIcon({ item, mouseX, onClick, onContextMenu }: DockIconProps) {
 
   return (
     <div className="relative flex flex-col items-center">
-      <motion.div
-        className="absolute -top-10 px-3 py-1.5 bg-[#1e1e20]/95 backdrop-blur-md text-white text-[12px] font-medium rounded-lg whitespace-nowrap pointer-events-none shadow-lg"
-        style={{
-          boxShadow: "0 4px 12px rgba(0,0,0,0.3), 0 0 0 0.5px rgba(255,255,255,0.1)",
-        }}
-        initial={{ opacity: 0, y: 6, scale: 0.95 }}
-        animate={{
-          opacity: isHovered ? 1 : 0,
-          y: isHovered ? 0 : 6,
-          scale: isHovered ? 1 : 0.95
-        }}
-        transition={{ duration: 0.12 }}
-      >
-        {item.label}
-        <div
-          className="absolute top-full left-1/2 -translate-x-1/2 -mt-px"
-          style={{
-            width: 0,
-            height: 0,
-            borderLeft: "6px solid transparent",
-            borderRight: "6px solid transparent",
-            borderTop: "6px solid rgba(30, 30, 32, 0.95)",
-          }}
-        />
-      </motion.div>
+      <Tooltip visible={isHovered} label={item.label} placement="top" offset={40} />
 
       <motion.div
         ref={ref}

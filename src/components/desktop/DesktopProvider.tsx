@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, ReactNode, createContext, useContext } from "react";
+import { ReactNode, createContext, useContext } from "react";
 import { motion } from "framer-motion";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 // macOS-inspired wallpapers
 export const WALLPAPERS = {
@@ -54,30 +55,23 @@ interface DesktopProviderProps {
 }
 
 export function DesktopProvider({ children }: DesktopProviderProps) {
-  const [wallpaper, setWallpaperState] = useState<WallpaperKey>("sonoma");
-  const [mounted, setMounted] = useState(false);
+  const [wallpaper, setWallpaperRaw, mounted] = useLocalStorage<WallpaperKey>(
+    "desktop-wallpaper",
+    "sonoma",
+  );
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem("desktop-wallpaper") as WallpaperKey;
-    if (saved && WALLPAPERS[saved]) {
-      setWallpaperState(saved);
-    }
-    setMounted(true);
-  }, []);
-
-  // Save to localStorage
+  // Guard against bad keys (e.g. an old saved value for a wallpaper we removed).
   const setWallpaper = (key: WallpaperKey) => {
-    setWallpaperState(key);
-    localStorage.setItem("desktop-wallpaper", key);
+    if (WALLPAPERS[key]) setWallpaperRaw(key);
   };
+  const safeWallpaper = WALLPAPERS[wallpaper] ? wallpaper : "sonoma";
 
   return (
-    <DesktopContext.Provider value={{ wallpaper, setWallpaper, wallpapers: WALLPAPERS }}>
+    <DesktopContext.Provider value={{ wallpaper: safeWallpaper, setWallpaper, wallpapers: WALLPAPERS }}>
       <div className="h-screen w-screen overflow-hidden flex flex-col">
         {/* Background layer */}
         <motion.div
-          className={`absolute inset-0 ${WALLPAPERS[wallpaper].className} transition-colors duration-500`}
+          className={`absolute inset-0 ${WALLPAPERS[safeWallpaper].className} transition-colors duration-500`}
           initial={{ opacity: 0 }}
           animate={{ opacity: mounted ? 1 : 0 }}
           transition={{ duration: 0.3 }}

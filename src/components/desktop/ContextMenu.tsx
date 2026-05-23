@@ -2,6 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
+import { GlassPanel } from "@/components/ui/GlassPanel";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import { useEscapeKey } from "@/hooks/useKeyDown";
+import { panelPopVariants } from "@/constants/motion";
+import { Z_INDEX } from "@/constants/layout";
 
 export interface ContextMenuItem {
   label: string;
@@ -28,22 +33,21 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
   // Get non-divider items for keyboard navigation
   const actionableItems = items.filter((item) => !item.divider && !item.disabled);
 
+  useClickOutside(menuRef, onClose);
+  useEscapeKey(onClose);
+
+  // Arrow navigation + Enter to invoke focused item.
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-        return;
-      }
-
       if (e.key === "ArrowDown") {
         e.preventDefault();
         setFocusedIndex((prev) =>
-          prev < actionableItems.length - 1 ? prev + 1 : 0
+          prev < actionableItems.length - 1 ? prev + 1 : 0,
         );
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
         setFocusedIndex((prev) =>
-          prev > 0 ? prev - 1 : actionableItems.length - 1
+          prev > 0 ? prev - 1 : actionableItems.length - 1,
         );
       } else if (e.key === "Enter" && focusedIndex >= 0) {
         e.preventDefault();
@@ -54,24 +58,15 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
         }
       }
     },
-    [actionableItems, focusedIndex, onClose]
+    [actionableItems, focusedIndex, onClose],
   );
 
+  // Scroll dismisses the menu (matches macOS behavior).
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-
     const handleScroll = () => onClose();
-
-    document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleKeyDown);
     window.addEventListener("scroll", handleScroll, true);
-
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("scroll", handleScroll, true);
     };
@@ -103,22 +98,17 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
 
   return (
     <motion.div
-      ref={menuRef}
-      className="fixed z-[200] min-w-[220px] py-1.5 rounded-xl overflow-hidden"
-      style={{
-        left: position.x,
-        top: position.y,
-        backgroundColor: "rgba(30, 30, 32, 0.9)",
-        backdropFilter: "blur(50px) saturate(180%)",
-        WebkitBackdropFilter: "blur(50px) saturate(180%)",
-        boxShadow:
-          "0 24px 48px -12px rgba(0, 0, 0, 0.5), 0 0 0 0.5px rgba(255, 255, 255, 0.1), inset 0 0.5px 0 rgba(255, 255, 255, 0.1)",
-      }}
-      initial={{ opacity: 0, scale: 0.95, y: -4 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95, y: -4 }}
-      transition={{ duration: 0.12, ease: [0.2, 0, 0.13, 1] }}
+      variants={panelPopVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
     >
+      <GlassPanel
+        ref={menuRef}
+        variant="menu"
+        className="fixed min-w-[220px] py-1.5 rounded-xl overflow-hidden"
+        style={{ left: position.x, top: position.y, zIndex: Z_INDEX.contextMenu }}
+      >
       {items.map((item, index) => {
         if (item.divider) {
           return (
@@ -146,7 +136,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
                 : item.danger
                 ? "text-red-400 hover:bg-red-500/20 active:bg-red-500/30"
                 : isKeyboardFocused
-                ? "bg-[#0058d1] text-white"
+                ? "bg-[var(--macos-accent-deep)] text-white"
                 : "text-white/90 hover:bg-white/10 active:bg-white/15")
             }
             style={{ width: "calc(100% - 12px)" }}
@@ -173,6 +163,7 @@ export function ContextMenu({ x, y, items, onClose }: ContextMenuProps) {
           </button>
         );
       })}
+      </GlassPanel>
     </motion.div>
   );
 }

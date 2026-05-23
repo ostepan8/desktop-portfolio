@@ -4,6 +4,64 @@ import { useState, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useFileSystem, type FileSystemItem } from "@/lib/filesystem";
 import { PromptDialog } from "@/components/ui/PromptDialog";
+import { SidebarItem } from "@/components/ui/SidebarItem";
+import {
+  SegmentedControl,
+  type SegmentedItem,
+} from "@/components/ui/SegmentedControl";
+
+type ViewMode = "icons" | "list";
+
+const VIEW_MODE_ITEMS: ReadonlyArray<SegmentedItem<ViewMode>> = [
+  {
+    value: "icons",
+    title: "Icon view",
+    icon: (
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+        <rect x="1" y="1" width="6" height="6" rx="1" />
+        <rect x="9" y="1" width="6" height="6" rx="1" />
+        <rect x="1" y="9" width="6" height="6" rx="1" />
+        <rect x="9" y="9" width="6" height="6" rx="1" />
+      </svg>
+    ),
+  },
+  {
+    value: "list",
+    title: "List view",
+    icon: (
+      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
+        <rect x="1" y="2" width="14" height="2" rx="0.5" />
+        <rect x="1" y="7" width="14" height="2" rx="0.5" />
+        <rect x="1" y="12" width="14" height="2" rx="0.5" />
+      </svg>
+    ),
+  },
+];
+
+const FINDER_TAGS = [
+  { color: "#ff3b30", name: "Red" },
+  { color: "#ff9500", name: "Orange" },
+  { color: "#34c759", name: "Green" },
+  { color: "#007aff", name: "Blue" },
+  { color: "#af52de", name: "Purple" },
+] as const;
+
+function SidebarSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <>
+      <div className="mt-4 first:mt-0 px-4 py-1.5 text-[11px] text-white/40 uppercase tracking-wider font-semibold">
+        {title}
+      </div>
+      <div className="px-2 space-y-0.5">{children}</div>
+    </>
+  );
+}
 
 interface FinderProps {
   initialPath?: string | null;
@@ -14,7 +72,7 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
   const { items, getChildren, getPath, getItem, createFolder } = useFileSystem();
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(initialPath);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [viewMode, setViewMode] = useState<"icons" | "list">("icons");
+  const [viewMode, setViewMode] = useState<ViewMode>("icons");
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewFolderDialog, setShowNewFolderDialog] = useState(false);
   // Track which sidebar item is active for highlighting (avoids dual-highlight when both Desktop and Macintosh HD map to root)
@@ -114,80 +172,51 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
     <div className="h-full flex bg-[#1e1e1e] text-white">
       {/* Sidebar */}
       <aside className="w-52 bg-[#1e1e1e]/50 backdrop-blur-xl border-r border-white/5 flex flex-col py-2">
-        {/* Favorites Section */}
-        <div className="px-4 py-1.5 text-[11px] text-white/40 uppercase tracking-wider font-semibold">
-          Favorites
-        </div>
-        <div className="px-2">
+        <SidebarSection title="Favorites">
           {favorites.map((fav) => (
-            <button
+            <SidebarItem
               key={fav.sidebarKey}
-              className={
-                "w-full flex items-center gap-2.5 px-2 py-[5px] text-[13px] rounded-md transition-all " +
-                (activeSidebarItem === fav.sidebarKey && !searchQuery
-                  ? "bg-white/15 text-white"
-                  : "text-white/80 hover:bg-white/8 active:bg-white/12")
-              }
+              icon={fav.icon}
+              label={fav.name}
+              active={activeSidebarItem === fav.sidebarKey && !searchQuery}
               onClick={() => {
                 setCurrentFolderId(fav.id);
                 setActiveSidebarItem(fav.sidebarKey);
                 setSearchQuery("");
                 setSelectedIds(new Set());
               }}
-            >
-              <span className="text-[16px] w-5 text-center opacity-80">{fav.icon}</span>
-              <span className="font-normal">{fav.name}</span>
-            </button>
+            />
           ))}
-        </div>
+        </SidebarSection>
 
-        {/* Locations Section */}
-        <div className="mt-4 px-4 py-1.5 text-[11px] text-white/40 uppercase tracking-wider font-semibold">
-          Locations
-        </div>
-        <div className="px-2">
-          <button
-            className={
-              "w-full flex items-center gap-2.5 px-2 py-[5px] text-[13px] rounded-md transition-all " +
-              (activeSidebarItem === "macintosh-hd" && !searchQuery
-                ? "bg-white/15 text-white"
-                : "text-white/80 hover:bg-white/8 active:bg-white/12")
-            }
+        <SidebarSection title="Locations">
+          <SidebarItem
+            icon="💻"
+            label="Macintosh HD"
+            active={activeSidebarItem === "macintosh-hd" && !searchQuery}
             onClick={() => {
               setCurrentFolderId(null);
               setActiveSidebarItem("macintosh-hd");
               setSearchQuery("");
             }}
-          >
-            <span className="text-[16px] w-5 text-center opacity-80">💻</span>
-            <span className="font-normal">Macintosh HD</span>
-          </button>
-        </div>
+          />
+        </SidebarSection>
 
-        {/* Tags Section */}
-        <div className="mt-4 px-4 py-1.5 text-[11px] text-white/40 uppercase tracking-wider font-semibold">
-          Tags
-        </div>
-        <div className="px-2 space-y-0.5">
-          {[
-            { color: "#ff3b30", name: "Red" },
-            { color: "#ff9500", name: "Orange" },
-            { color: "#34c759", name: "Green" },
-            { color: "#007aff", name: "Blue" },
-            { color: "#af52de", name: "Purple" },
-          ].map((tag) => (
-            <button
+        <SidebarSection title="Tags">
+          {FINDER_TAGS.map((tag) => (
+            <SidebarItem
               key={tag.name}
-              className="w-full flex items-center gap-2.5 px-2 py-[5px] text-[13px] text-white/60 rounded-md hover:bg-white/8 transition-all"
-            >
-              <span
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: tag.color }}
-              />
-              <span className="font-normal">{tag.name}</span>
-            </button>
+              variant="subtle"
+              icon={
+                <span
+                  className="inline-block w-3 h-3 rounded-full"
+                  style={{ backgroundColor: tag.color }}
+                />
+              }
+              label={tag.name}
+            />
           ))}
-        </div>
+        </SidebarSection>
       </aside>
 
       {/* Main content */}
@@ -240,35 +269,14 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
           </div>
 
           {/* View mode toggle */}
-          <div className="flex bg-white/5 rounded overflow-hidden">
-            <button
-              className={
-                "p-1.5 " + (viewMode === "icons" ? "bg-white/10" : "hover:bg-white/5")
-              }
-              onClick={() => setViewMode("icons")}
-              title="Icon view"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
-                <rect x="1" y="1" width="6" height="6" rx="1" />
-                <rect x="9" y="1" width="6" height="6" rx="1" />
-                <rect x="1" y="9" width="6" height="6" rx="1" />
-                <rect x="9" y="9" width="6" height="6" rx="1" />
-              </svg>
-            </button>
-            <button
-              className={
-                "p-1.5 " + (viewMode === "list" ? "bg-white/10" : "hover:bg-white/5")
-              }
-              onClick={() => setViewMode("list")}
-              title="List view"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 16 16">
-                <rect x="1" y="2" width="14" height="2" rx="0.5" />
-                <rect x="1" y="7" width="14" height="2" rx="0.5" />
-                <rect x="1" y="12" width="14" height="2" rx="0.5" />
-              </svg>
-            </button>
-          </div>
+          <SegmentedControl
+            items={VIEW_MODE_ITEMS}
+            value={viewMode}
+            onChange={setViewMode}
+            accent="neutral"
+            size="sm"
+          />
+
 
           {/* Search */}
           <div className="relative">

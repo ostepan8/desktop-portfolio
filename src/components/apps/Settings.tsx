@@ -4,6 +4,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { useDesktop, WALLPAPERS, type WallpaperKey } from "@/components/desktop";
 import { useSounds } from "@/lib/sounds";
+import { Toggle } from "@/components/ui/Toggle";
+import { SidebarItem } from "@/components/ui/SidebarItem";
 
 type SettingsTab = "general" | "desktop" | "sound";
 
@@ -17,24 +19,18 @@ export function Settings() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
 
   return (
-    <div className="h-full flex bg-[#1e1e1e]">
+    <div className="h-full flex bg-[var(--macos-bg-1)]">
       {/* Sidebar */}
-      <div className="w-56 bg-[#252525] border-r border-white/10 p-3">
+      <div className="w-56 bg-[var(--macos-bg-2)] border-r border-white/10 p-3">
         <div className="space-y-1">
           {TABS.map((tab) => (
-            <button
+            <SidebarItem
               key={tab.id}
+              icon={tab.icon}
+              label={tab.label}
+              active={activeTab === tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={
-                "w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors " +
-                (activeTab === tab.id
-                  ? "bg-[#0a84ff] text-white"
-                  : "text-white/70 hover:bg-white/10")
-              }
-            >
-              <span className="text-lg">{tab.icon}</span>
-              <span className="text-sm font-medium">{tab.label}</span>
-            </button>
+            />
           ))}
         </div>
       </div>
@@ -181,7 +177,12 @@ function SoundSettings() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <span className="text-white/80">Sound Effects</span>
-            <ToggleSwitch enabled={!isMuted} onChange={() => setMuted(!isMuted)} />
+            <Toggle
+              checked={!isMuted}
+              onChange={() => setMuted(!isMuted)}
+              size="md"
+              ariaLabel="Sound effects"
+            />
           </div>
 
           <div className="space-y-2">
@@ -235,29 +236,6 @@ function SettingsSection({ title, children }: SettingsSectionProps) {
       <h3 className="text-sm font-medium text-white/50 uppercase tracking-wide">{title}</h3>
       {children}
     </div>
-  );
-}
-
-interface ToggleSwitchProps {
-  enabled: boolean;
-  onChange: () => void;
-}
-
-function ToggleSwitch({ enabled, onChange }: ToggleSwitchProps) {
-  return (
-    <button
-      onClick={onChange}
-      className={
-        "relative w-12 h-7 rounded-full transition-colors " +
-        (enabled ? "bg-[#30d158]" : "bg-white/20")
-      }
-    >
-      <motion.div
-        className="absolute top-1 w-5 h-5 bg-white rounded-full shadow-md"
-        animate={{ left: enabled ? 26 : 4 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-      />
-    </button>
   );
 }
 

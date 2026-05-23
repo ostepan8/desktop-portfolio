@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BRAND_ICONS, type BrandIconId } from "@/constants/brand-icons";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 
 interface Bookmark {
   id: string;
@@ -336,32 +337,18 @@ export function Safari() {
             >
               <div className="max-w-3xl mx-auto">
                 {/* Category tabs */}
-                <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
-                  <button
-                    className={
-                      "px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors " +
-                      (!activeCategory
-                        ? "bg-blue-500 text-white"
-                        : "bg-white/10 text-white/70 hover:bg-white/20")
+                <div className="mb-6">
+                  <SegmentedControl
+                    items={[
+                      { value: "__all__", label: "All" },
+                      ...CATEGORIES.map((c) => ({ value: c, label: c })),
+                    ]}
+                    value={activeCategory ?? "__all__"}
+                    onChange={(next) =>
+                      setActiveCategory(next === "__all__" ? null : next)
                     }
-                    onClick={() => setActiveCategory(null)}
-                  >
-                    All
-                  </button>
-                  {CATEGORIES.map((category) => (
-                    <button
-                      key={category}
-                      className={
-                        "px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors " +
-                        (activeCategory === category
-                          ? "bg-blue-500 text-white"
-                          : "bg-white/10 text-white/70 hover:bg-white/20")
-                      }
-                      onClick={() => setActiveCategory(activeCategory === category ? null : category)}
-                    >
-                      {category}
-                    </button>
-                  ))}
+                    accent="blue"
+                  />
                 </div>
 
                 {/* Favorites grid */}

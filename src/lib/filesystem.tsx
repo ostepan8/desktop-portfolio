@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, useContext, useCallback, ReactNode } from "react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 // File system types
 export type FileType = "folder" | "file" | "image" | "link" | "app";
@@ -234,42 +235,38 @@ interface FileSystemProviderProps {
 }
 
 export function FileSystemProvider({ children }: FileSystemProviderProps) {
-  const [items, setItems] = useState<FileSystemItem[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [rawItems, setRawItems] = useLocalStorage<FileSystemItem[] | null>(
+    STORAGE_KEY,
+    null,
+  );
 
-  // Load from localStorage on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        // Convert date strings back to Date objects
-        const restored = parsed.map((item: FileSystemItem) => ({
+  // Hydrate Date objects from JSON strings on read; fall back to the seed file
+  // system when nothing was stored. Cheap enough to do on every render.
+  const items: FileSystemItem[] =
+    rawItems === null
+      ? createDefaultFileSystem()
+      : rawItems.map((item) => ({
           ...item,
           createdAt: new Date(item.createdAt),
           modifiedAt: new Date(item.modifiedAt),
         }));
-        setItems(restored);
-      } else {
-        setItems(createDefaultFileSystem());
-      }
-    } catch (e) {
-      console.error("Failed to load file system from localStorage:", e);
-      setItems(createDefaultFileSystem());
-    }
-    setIsLoaded(true);
-  }, []);
 
-  // Save to localStorage when items change
-  useEffect(() => {
-    if (isLoaded) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      } catch (e) {
-        console.error("Failed to save file system to localStorage:", e);
-      }
-    }
-  }, [items, isLoaded]);
+  const setItems = useCallback(
+    (next: FileSystemItem[] | ((prev: FileSystemItem[]) => FileSystemItem[])) => {
+      setRawItems((prev) => {
+        const base =
+          prev === null
+            ? createDefaultFileSystem()
+            : prev.map((item) => ({
+                ...item,
+                createdAt: new Date(item.createdAt),
+                modifiedAt: new Date(item.modifiedAt),
+              }));
+        return typeof next === "function" ? next(base) : next;
+      });
+    },
+    [setRawItems],
+  );
 
   const getItem = useCallback((id: string) => {
     return items.find((item) => item.id === id);

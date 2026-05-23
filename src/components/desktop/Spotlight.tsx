@@ -4,6 +4,10 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AppIcon } from "@/components/icons";
 import { SEARCHABLE_APPS } from "@/constants/apps";
+import { GlassPanel } from "@/components/ui/GlassPanel";
+import { Z_INDEX } from "@/constants/layout";
+import { modalBackdropVariants } from "@/constants/motion";
+import { useKeyDown } from "@/hooks/useKeyDown";
 
 interface SpotlightResult {
   id: string;
@@ -84,27 +88,27 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return;
-
-      if (e.key === "Escape") {
-        onClose();
-      } else if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1));
-      } else if (e.key === "Enter" && results.length > 0) {
-        e.preventDefault();
-        handleSelect(results[selectedIndex]);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose, results, selectedIndex, handleSelect]);
+  useKeyDown(
+    ["Escape", "ArrowDown", "ArrowUp", "Enter"],
+    useCallback(
+      (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          onClose();
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          setSelectedIndex((prev) => (prev < results.length - 1 ? prev + 1 : 0));
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : results.length - 1));
+        } else if (e.key === "Enter" && results.length > 0) {
+          e.preventDefault();
+          handleSelect(results[selectedIndex]);
+        }
+      },
+      [onClose, results, selectedIndex, handleSelect],
+    ),
+    isOpen,
+  );
 
   // Reset selection when results change
   useEffect(() => {
@@ -142,27 +146,28 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/30 z-[150]"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/30"
+            style={{ zIndex: Z_INDEX.spotlight }}
+            variants={modalBackdropVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             onClick={onClose}
           />
 
           {/* Spotlight Dialog */}
           <motion.div
-            className="fixed top-[20%] left-1/2 -translate-x-1/2 z-[151] w-[680px] max-w-[90vw] rounded-xl overflow-hidden"
-            style={{
-              backgroundColor: "rgba(30, 30, 32, 0.9)",
-              backdropFilter: "blur(50px) saturate(180%)",
-              WebkitBackdropFilter: "blur(50px) saturate(180%)",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 0 0.5px rgba(255, 255, 255, 0.1)",
-            }}
+            className="fixed top-[20%] left-1/2 -translate-x-1/2 w-[680px] max-w-[90vw]"
+            style={{ zIndex: Z_INDEX.spotlight + 1 }}
             initial={{ opacity: 0, scale: 0.96, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -10 }}
             transition={{ type: "spring", stiffness: 400, damping: 30 }}
           >
+            <GlassPanel
+              variant="sheet"
+              className="rounded-xl overflow-hidden"
+            >
             {/* Search Input */}
             <div className="flex items-center gap-4 px-5 py-4 border-b border-white/10">
               <svg className="w-6 h-6 text-white/40 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -206,7 +211,9 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
                       key={result.id}
                       className={
                         "w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors " +
-                        (index === selectedIndex ? "bg-blue-500" : "hover:bg-white/5")
+                        (index === selectedIndex
+                          ? "bg-[var(--macos-accent-bright)]"
+                          : "hover:bg-white/5")
                       }
                       onClick={() => handleSelect(result)}
                       onMouseEnter={() => setSelectedIndex(index)}
@@ -256,6 +263,7 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
                 </span>
               </div>
             </div>
+            </GlassPanel>
           </motion.div>
         </>
       )}

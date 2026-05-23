@@ -1,7 +1,12 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { GlassPanel } from "@/components/ui/GlassPanel";
+import { Toggle } from "@/components/ui/Toggle";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import { Z_INDEX, MENU_BAR_HEIGHT } from "@/constants/layout";
+import { slideInRightVariants } from "@/constants/motion";
 
 interface Notification {
   id: string;
@@ -49,17 +54,7 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
   const [notifications, setNotifications] = useState(SAMPLE_NOTIFICATIONS);
   const [doNotDisturb, setDoNotDisturb] = useState(false);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        onClose();
-      }
-    };
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen, onClose]);
+  useClickOutside(panelRef, onClose, isOpen);
 
   const clearNotification = (id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
@@ -80,7 +75,8 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
         <>
           {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 z-[149]"
+            className="fixed inset-0"
+            style={{ zIndex: Z_INDEX.notificationCenter - 1 }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -89,19 +85,18 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
 
           {/* Panel */}
           <motion.div
-            ref={panelRef}
-            className="fixed right-0 top-7 bottom-0 w-[360px] z-[150] overflow-hidden"
-            style={{
-              backgroundColor: "rgba(30, 30, 32, 0.75)",
-              backdropFilter: "blur(50px) saturate(180%)",
-              WebkitBackdropFilter: "blur(50px) saturate(180%)",
-              boxShadow: "-5px 0 30px rgba(0, 0, 0, 0.3)",
-            }}
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", stiffness: 400, damping: 35 }}
+            variants={slideInRightVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="fixed right-0 bottom-0 w-[360px]"
+            style={{ top: MENU_BAR_HEIGHT - 1, zIndex: Z_INDEX.notificationCenter }}
           >
+            <GlassPanel
+              ref={panelRef}
+              variant="panel"
+              className="h-full overflow-hidden"
+            >
             <div className="h-full overflow-y-auto p-4 space-y-4">
               {/* Date Header */}
               <div className="text-center pb-2">
@@ -263,28 +258,11 @@ export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps)
               {/* Bottom padding for scroll */}
               <div className="h-8" />
             </div>
+            </GlassPanel>
           </motion.div>
         </>
       )}
     </AnimatePresence>
-  );
-}
-
-// Toggle Component
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (value: boolean) => void }) {
-  return (
-    <button
-      onClick={() => onChange(!checked)}
-      className={`relative w-10 h-6 rounded-full transition-colors ${
-        checked ? "bg-green-500" : "bg-white/20"
-      }`}
-    >
-      <motion.div
-        className="absolute top-1 w-4 h-4 bg-white rounded-full shadow"
-        animate={{ left: checked ? 20 : 4 }}
-        transition={{ type: "spring", stiffness: 500, damping: 30 }}
-      />
-    </button>
   );
 }
 
