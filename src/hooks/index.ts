@@ -4,3 +4,8 @@ export { usePointerDrag, type DragState, type PointerDragOptions } from "./usePo
 export { useLocalStorage } from "./useLocalStorage";
 export { useDoubleClick } from "./useDoubleClick";
 export { useIsMobile } from "./useIsMobile";
+export {
+  useSelectionRect,
+  type BoundedItem,
+  type SelectionRect,
+} from "./useSelectionRect";
