@@ -75,9 +75,8 @@ export function Window({
   const { snapZone, updateSnap, commitSnap } = useWindowSnap({
     position,
     size,
-    onSnap: ({ position: nextPos, size: nextSize, previous }) => {
-      const snapped = nextPos.x !== previous.position.x + 0 || nextSize.width !== previous.size.width;
-      if (snapped) {
+    onSnap: ({ position: nextPos, size: nextSize, previous, wasSnap }) => {
+      if (wasSnap) {
         setPreMaximizeState(previous);
         setIsMaximized(true);
       }

@@ -22,7 +22,12 @@ interface Size {
 interface UseWindowSnapArgs {
   position: Position;
   size: Size;
-  onSnap: (next: { position: Position; size: Size; previous: { position: Position; size: Size } }) => void;
+  onSnap: (next: {
+    position: Position;
+    size: Size;
+    previous: { position: Position; size: Size };
+    wasSnap: boolean;
+  }) => void;
 }
 
 /**
@@ -84,6 +89,7 @@ export function useWindowSnap({ position, size, onSnap }: UseWindowSnapArgs) {
           position: { x: snapped.x, y: snapped.y },
           size: { width: snapped.w, height: snapped.h },
           previous: { position, size },
+          wasSnap: true,
         });
         setSnapZone(null);
         return true;
@@ -93,6 +99,7 @@ export function useWindowSnap({ position, size, onSnap }: UseWindowSnapArgs) {
         position: { x: position.x + offsetX, y: position.y + offsetY },
         size,
         previous: { position, size },
+        wasSnap: false,
       });
       return false;
     },
