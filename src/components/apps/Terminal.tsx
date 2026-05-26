@@ -121,12 +121,9 @@ Easter eggs? Try typing something fun! 🥚`);
           addOutput("(empty directory)");
         } else {
           const output = children
-            .map((item) => {
-              const isDir = item.type === "folder";
-              return isDir ? `\x1b[34m${item.name}/\x1b[0m` : item.name;
-            })
+            .map((item) => (item.type === "folder" ? `${item.name}/` : item.name))
             .join("  ");
-          addOutput(output.replace(/\x1b\[\d+m/g, "")); // Strip ANSI for now
+          addOutput(output);
         }
         break;
       }
@@ -262,7 +259,7 @@ Easter eggs? Try typing something fun! 🥚`);
   return (
     <div
       ref={containerRef}
-      className="h-full bg-[#1e1e1e] font-mono text-sm text-green-400 overflow-auto p-4 cursor-text"
+      className="h-full bg-[var(--macos-bg)] font-mono text-sm text-green-400 overflow-auto p-4 cursor-text"
       onClick={handleContainerClick}
     >
       {/* Output lines */}
