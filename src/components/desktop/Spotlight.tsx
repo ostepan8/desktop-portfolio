@@ -8,6 +8,7 @@ import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Z_INDEX } from "@/constants/layout";
 import { modalBackdropVariants } from "@/constants/motion";
 import { useKeyDown } from "@/hooks/useKeyDown";
+import { useFileSystem } from "@/lib/filesystem";
 
 interface SpotlightResult {
   id: string;
@@ -26,17 +27,11 @@ interface SpotlightProps {
   onOpenFile: (fileId: string) => void;
 }
 
-// Files/folders reachable from Spotlight — derived from the desktop seed.
-// Apps come from the shared registry so we don't have to re-list them here.
-const SPOTLIGHT_FILES: SpotlightResult[] = [
-  { id: "documents", type: "folder", name: "Documents", subtitle: "Folder" },
-  { id: "readme", type: "file", name: "README.txt", subtitle: "Text File" },
-];
-
 export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightProps) {
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { items } = useFileSystem();
 
   const allItems = useMemo<SpotlightResult[]>(
     () => [
@@ -47,9 +42,20 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
         subtitle: "Application",
         appId: app.id,
       })),
-      ...SPOTLIGHT_FILES,
+      ...items
+        .filter(
+          (item) =>
+            item.id !== "macintosh-hd" &&
+            (item.type === "folder" || item.type === "file"),
+        )
+        .map((item) => ({
+          id: item.id,
+          type: item.type as "folder" | "file",
+          name: item.name,
+          subtitle: item.type === "folder" ? "Folder" : "File",
+        })),
     ],
-    [],
+    [items],
   );
 
   const results = query.trim()

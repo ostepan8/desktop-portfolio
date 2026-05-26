@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { motion, useMotionValue, useSpring, useTransform, type Variants, AnimatePresence } from "framer-motion";
+import { motion, useMotionValue, type Variants, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useDockMagnification } from "@/hooks/useDockMagnification";
 import { AppIcon } from "@/components/icons";
 import { ContextMenu, type ContextMenuItem } from "@/components/desktop/ContextMenu";
 import { Tooltip } from "@/components/ui/Tooltip";
@@ -191,18 +192,7 @@ function DockIcon({ item, mouseX, onClick, onContextMenu }: DockIconProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isBouncing, setIsBouncing] = useState(false);
 
-  const distance = useTransform(mouseX, (val) => {
-    const bounds = ref.current?.getBoundingClientRect() ?? { x: 0, width: 0 };
-    return val - bounds.x - bounds.width / 2;
-  });
-
-  // More macOS-like magnification: larger base size, smoother falloff
-  const widthSync = useTransform(distance, [-150, -75, 0, 75, 150], [54, 62, 72, 62, 54]);
-  const width = useSpring(widthSync, {
-    mass: 0.05,
-    stiffness: 200,
-    damping: 15,
-  });
+  const width = useDockMagnification(mouseX, ref);
 
   const handleClick = () => {
     // Start bounce animation if app is not already running

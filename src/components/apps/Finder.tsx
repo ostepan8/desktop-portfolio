@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { motion } from "framer-motion";
 import { useFileSystem, type FileSystemItem } from "@/lib/filesystem";
 import { PromptDialog } from "@/components/ui/PromptDialog";
-import { SidebarItem } from "@/components/ui/SidebarItem";
 import {
   SegmentedControl,
   type SegmentedItem,
 } from "@/components/ui/SegmentedControl";
+import { FinderSidebar, type FinderFavorite } from "./finder/FinderSidebar";
+import { FinderFileItem } from "./finder/FinderFileItem";
 
 type ViewMode = "icons" | "list";
 
@@ -37,31 +37,6 @@ const VIEW_MODE_ITEMS: ReadonlyArray<SegmentedItem<ViewMode>> = [
     ),
   },
 ];
-
-const FINDER_TAGS = [
-  { color: "#ff3b30", name: "Red" },
-  { color: "#ff9500", name: "Orange" },
-  { color: "#34c759", name: "Green" },
-  { color: "#007aff", name: "Blue" },
-  { color: "#af52de", name: "Purple" },
-] as const;
-
-function SidebarSection({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <>
-      <div className="mt-4 first:mt-0 px-4 py-1.5 text-[11px] text-white/40 uppercase tracking-wider font-semibold">
-        {title}
-      </div>
-      <div className="px-2 space-y-0.5">{children}</div>
-    </>
-  );
-}
 
 interface FinderProps {
   initialPath?: string | null;
@@ -104,11 +79,11 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
   }, [currentFolderId, getPath]);
 
   // Sidebar favorites
-  const favorites = useMemo(() => {
+  const favorites = useMemo<ReadonlyArray<FinderFavorite>>(() => {
     return [
-      { id: null as string | null, sidebarKey: "desktop", name: "Desktop", icon: "🖥️" },
-      { id: "documents" as string | null, sidebarKey: "documents", name: "Documents", icon: "📁" },
-      { id: "projects" as string | null, sidebarKey: "projects", name: "Projects", icon: "📂" },
+      { id: null, sidebarKey: "desktop", name: "Desktop", icon: "🖥️" },
+      { id: "documents", sidebarKey: "documents", name: "Documents", icon: "📁" },
+      { id: "projects", sidebarKey: "projects", name: "Projects", icon: "📂" },
     ];
   }, []);
 
@@ -168,56 +143,28 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
     [createFolder, currentFolderId],
   );
 
+  const handlePickFavorite = useCallback((fav: FinderFavorite) => {
+    setCurrentFolderId(fav.id);
+    setActiveSidebarItem(fav.sidebarKey);
+    setSearchQuery("");
+    setSelectedIds(new Set());
+  }, []);
+
+  const handlePickMacintoshHD = useCallback(() => {
+    setCurrentFolderId(null);
+    setActiveSidebarItem("macintosh-hd");
+    setSearchQuery("");
+  }, []);
+
   return (
     <div className="h-full flex bg-[#1e1e1e] text-white">
-      {/* Sidebar */}
-      <aside className="w-52 bg-[#1e1e1e]/50 backdrop-blur-xl border-r border-white/5 flex flex-col py-2">
-        <SidebarSection title="Favorites">
-          {favorites.map((fav) => (
-            <SidebarItem
-              key={fav.sidebarKey}
-              icon={fav.icon}
-              label={fav.name}
-              active={activeSidebarItem === fav.sidebarKey && !searchQuery}
-              onClick={() => {
-                setCurrentFolderId(fav.id);
-                setActiveSidebarItem(fav.sidebarKey);
-                setSearchQuery("");
-                setSelectedIds(new Set());
-              }}
-            />
-          ))}
-        </SidebarSection>
-
-        <SidebarSection title="Locations">
-          <SidebarItem
-            icon="💻"
-            label="Macintosh HD"
-            active={activeSidebarItem === "macintosh-hd" && !searchQuery}
-            onClick={() => {
-              setCurrentFolderId(null);
-              setActiveSidebarItem("macintosh-hd");
-              setSearchQuery("");
-            }}
-          />
-        </SidebarSection>
-
-        <SidebarSection title="Tags">
-          {FINDER_TAGS.map((tag) => (
-            <SidebarItem
-              key={tag.name}
-              variant="subtle"
-              icon={
-                <span
-                  className="inline-block w-3 h-3 rounded-full"
-                  style={{ backgroundColor: tag.color }}
-                />
-              }
-              label={tag.name}
-            />
-          ))}
-        </SidebarSection>
-      </aside>
+      <FinderSidebar
+        activeSidebarItem={activeSidebarItem}
+        searchQuery={searchQuery}
+        favorites={favorites}
+        onPickFavorite={handlePickFavorite}
+        onPickMacintoshHD={handlePickMacintoshHD}
+      />
 
       {/* Main content */}
       <div className="flex-1 flex flex-col">
@@ -326,7 +273,7 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
           ) : viewMode === "icons" ? (
             <div className="grid grid-cols-[repeat(auto-fill,minmax(80px,1fr))] gap-4">
               {currentChildren.map((item) => (
-                <FileItem
+                <FinderFileItem
                   key={item.id}
                   item={item}
                   isSelected={selectedIds.has(item.id)}
@@ -345,7 +292,7 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
                 <span className="w-20">Kind</span>
               </div>
               {currentChildren.map((item) => (
-                <FileItem
+                <FinderFileItem
                   key={item.id}
                   item={item}
                   isSelected={selectedIds.has(item.id)}
@@ -374,73 +321,5 @@ export function Finder({ initialPath = null, onOpenFile }: FinderProps) {
         onCancel={() => setShowNewFolderDialog(false)}
       />
     </div>
-  );
-}
-
-interface FileItemProps {
-  item: FileSystemItem;
-  isSelected: boolean;
-  viewMode: "icons" | "list";
-  onClick: (e: React.MouseEvent) => void;
-  onDoubleClick: () => void;
-}
-
-function FileItem({ item, isSelected, viewMode, onClick, onDoubleClick }: FileItemProps) {
-  if (viewMode === "icons") {
-    return (
-      <motion.div
-        className={
-          "flex flex-col items-center gap-1 p-2 rounded-lg cursor-default select-none " +
-          (isSelected ? "bg-white/10" : "hover:bg-white/5")
-        }
-        onClick={onClick}
-        onDoubleClick={onDoubleClick}
-        whileTap={{ scale: 0.98 }}
-      >
-        <span className="text-4xl">{item.icon}</span>
-        <span
-          className={
-            "text-xs text-center line-clamp-2 break-all max-w-[72px] px-1 rounded " +
-            (isSelected ? "bg-[#0058d1]" : "")
-          }
-        >
-          {item.name}
-        </span>
-      </motion.div>
-    );
-  }
-
-  // List view
-  const dateStr = item.modifiedAt.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-
-  const kindLabels: Record<string, string> = {
-    folder: "Folder",
-    file: "Document",
-    image: "Image",
-    link: "Alias",
-    app: "Application",
-  };
-
-  return (
-    <motion.div
-      className={
-        "flex items-center gap-4 px-2 py-1 rounded cursor-default select-none " +
-        (isSelected ? "bg-[#0058d1]" : "hover:bg-white/5")
-      }
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-      whileTap={{ scale: 0.995 }}
-    >
-      <div className="flex items-center gap-2 flex-1 min-w-0">
-        <span className="text-lg shrink-0">{item.icon}</span>
-        <span className="text-sm truncate">{item.name}</span>
-      </div>
-      <span className="w-32 text-xs text-white/50 shrink-0">{dateStr}</span>
-      <span className="w-20 text-xs text-white/50 shrink-0">{kindLabels[item.type]}</span>
-    </motion.div>
   );
 }
