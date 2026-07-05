@@ -33,6 +33,18 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
   const inputRef = useRef<HTMLInputElement>(null);
   const { items } = useFileSystem();
 
+  // Reset transient search state when the panel transitions closed. Done during
+  // render (React's "adjust state on prop change" pattern) rather than in an
+  // effect, which would trigger an extra cascading render.
+  const [wasOpen, setWasOpen] = useState(isOpen);
+  if (wasOpen !== isOpen) {
+    setWasOpen(isOpen);
+    if (!isOpen) {
+      setQuery("");
+      setSelectedIndex(0);
+    }
+  }
+
   const allItems = useMemo<SpotlightResult[]>(
     () => [
       ...SEARCHABLE_APPS.map((app) => ({
@@ -87,13 +99,6 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
     }
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen) {
-      setQuery("");
-      setSelectedIndex(0);
-    }
-  }, [isOpen]);
-
   useKeyDown(
     ["Escape", "ArrowDown", "ArrowUp", "Enter"],
     useCallback(
@@ -116,10 +121,12 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
     isOpen,
   );
 
-  // Reset selection when results change
-  useEffect(() => {
+  // Selection is reset wherever `query` is mutated (input onChange + clear
+  // button) so it never points past the end of a filtered result list.
+  const handleQueryChange = useCallback((next: string) => {
+    setQuery(next);
     setSelectedIndex(0);
-  }, [query]);
+  }, []);
 
   const getResultIcon = (result: SpotlightResult) => {
     if (result.type === "app" && result.appId) {
@@ -183,7 +190,7 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
                 ref={inputRef}
                 type="text"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(e) => handleQueryChange(e.target.value)}
                 className="flex-1 bg-transparent text-xl text-white placeholder-white/30 outline-none"
                 placeholder="Spotlight Search"
                 autoComplete="off"
@@ -193,7 +200,7 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
               />
               {query && (
                 <button
-                  onClick={() => setQuery("")}
+                  onClick={() => handleQueryChange("")}
                   className="p-1 rounded-full hover:bg-white/10 text-white/40 hover:text-white/60"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -245,7 +252,7 @@ export function Spotlight({ isOpen, onClose, onOpenApp, onOpenFile }: SpotlightP
                 </div>
               ) : query ? (
                 <div className="py-8 text-center text-white/40">
-                  No results for "{query}"
+                  No results for &quot;{query}&quot;
                 </div>
               ) : null}
             </div>

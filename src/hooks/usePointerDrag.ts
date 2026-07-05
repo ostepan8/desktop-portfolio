@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 
 export interface DragState {
   /** Pointer position when drag started, in client coordinates. */
@@ -30,7 +30,9 @@ export interface PointerDragOptions {
  */
 export function usePointerDrag(options: PointerDragOptions) {
   const optionsRef = useRef(options);
-  optionsRef.current = options;
+  useEffect(() => {
+    optionsRef.current = options;
+  });
 
   return useCallback((event: React.PointerEvent) => {
     const startX = event.clientX;

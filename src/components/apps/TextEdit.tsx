@@ -19,17 +19,27 @@ export function TextEdit({ fileId, onTitleChange }: TextEditProps) {
   const [showNewFileDialog, setShowNewFileDialog] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Load file content on mount
-  useEffect(() => {
+  // Load file content when the target fileId changes. Done during render
+  // (React's "adjust state on prop change" pattern) to avoid a setState-in-
+  // effect cascade; the parent-title notification stays in the effect below.
+  const [loadedFileId, setLoadedFileId] = useState<string | undefined>(undefined);
+  if (fileId !== loadedFileId) {
+    setLoadedFileId(fileId);
     if (fileId) {
       const file = getItem(fileId);
       if (file && file.type === "file") {
         setContent(file.content || "");
         setFileName(file.name);
         setCurrentFileId(fileId);
-        onTitleChange?.(file.name);
       }
     }
+  }
+
+  // Reflect the loaded file's name in the window title (parent-side effect).
+  useEffect(() => {
+    if (!fileId) return;
+    const file = getItem(fileId);
+    if (file && file.type === "file") onTitleChange?.(file.name);
   }, [fileId, getItem, onTitleChange]);
 
   const handleSave = useCallback(() => {

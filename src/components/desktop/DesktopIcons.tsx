@@ -63,18 +63,24 @@ export function DesktopIcons({
     () => calculateInitialPositions(icons),
   );
   const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
 
-  // Recalculate icon positions once we know the real window height (avoids
-  // initial SSR layout flash where they'd stack against the default 800px).
+  // Recalculate icon positions and measure the container once we're on the
+  // client (avoids the SSR layout flash where icons stack against the default
+  // 800px height), and keep both in sync on window resize.
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    if (typeof window === "undefined") return;
+    const measure = () => {
       setIconPositions(calculateInitialPositions(icons, window.innerHeight));
-    }
+      setContainerWidth(containerRef.current?.getBoundingClientRect().width ?? 0);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
   }, [icons]);
 
   // Build BoundedItems for hit-testing against the selection rectangle. Icons
   // are positioned from the right edge, so left = container.width - pos.x - GRID.
-  const containerWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
   const boundedItems: BoundedItem[] = useMemo(
     () =>
       icons.map((icon) => {
@@ -269,8 +275,6 @@ interface MobileDesktopIconProps {
 }
 
 function MobileDesktopIcon({ icon, onClick }: MobileDesktopIconProps) {
-  const IconComponent = pickIconComponent(icon.type);
-
   return (
     <motion.div
       className="flex flex-col items-center gap-1 flex-shrink-0"
@@ -278,7 +282,7 @@ function MobileDesktopIcon({ icon, onClick }: MobileDesktopIconProps) {
       whileTap={{ scale: 0.95 }}
     >
       <div className="w-14 h-14 flex items-center justify-center">
-        <IconComponent size={56} />
+        <IconGraphic type={icon.type} size={56} />
       </div>
       <span className="text-[10px] text-white/80 font-medium text-center w-16 truncate">
         {icon.label}
@@ -306,7 +310,6 @@ function DesktopIcon({
   onContextMenu,
   onDragEnd,
 }: DesktopIconProps) {
-  const IconComponent = pickIconComponent(icon.type);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   return (
@@ -340,7 +343,7 @@ function DesktopIcon({
               : "group-hover:bg-white/10")
         }
       >
-        <IconComponent size={64} />
+        <IconGraphic type={icon.type} size={64} />
       </div>
 
       <div
@@ -352,9 +355,9 @@ function DesktopIcon({
         <span
           className="text-[11px] font-medium leading-tight line-clamp-2 break-words text-white"
           style={{
-            textShadow: isSelected
-              ? "none"
-              : "0 1px 3px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.5)",
+            // A single tight shadow keeps the label legible on the wallpaper
+            // without the dark "box" halo a wide blur leaves behind it.
+            textShadow: isSelected ? "none" : "0 1px 2px rgba(0,0,0,0.55)",
           }}
         >
           {icon.label}
@@ -364,10 +367,21 @@ function DesktopIcon({
   );
 }
 
-function pickIconComponent(type: DesktopIconData["type"]) {
-  if (type === "drive") return DriveIcon;
-  if (type === "folder") return FolderIcon;
-  return FileIcon;
+/**
+ * Renders the right glyph for an icon type. Declared at module scope (not as a
+ * `const Component = pick(...)` inside render) so React keeps a stable
+ * component identity and doesn't reset state on every render.
+ */
+function IconGraphic({
+  type,
+  size,
+}: {
+  type: DesktopIconData["type"];
+  size: number;
+}) {
+  if (type === "drive") return <DriveIcon size={size} />;
+  if (type === "folder") return <FolderIcon size={size} />;
+  return <FileIcon size={size} />;
 }
 
 export { DEFAULT_DESKTOP_ICONS } from "@/constants/desktop-icons";

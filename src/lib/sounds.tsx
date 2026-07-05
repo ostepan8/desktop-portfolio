@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, useContext, useCallback, ReactNode } from "react";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 
 interface SoundContextType {
   isMuted: boolean;
@@ -30,7 +31,11 @@ class SoundGenerator {
 
   private getContext(): AudioContext {
     if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const AudioCtor =
+        window.AudioContext ??
+        (window as unknown as { webkitAudioContext: typeof AudioContext })
+          .webkitAudioContext;
+      this.audioContext = new AudioCtor();
     }
     return this.audioContext;
   }
@@ -162,27 +167,10 @@ interface SoundProviderProps {
 }
 
 export function SoundProvider({ children }: SoundProviderProps) {
-  const [isMuted, setIsMuted] = useState(true); // Muted by default
-  const [volume, setVolume] = useState(0.5);
-
-  // Load preferences from localStorage
-  useEffect(() => {
-    const savedMuted = localStorage.getItem("sound-muted");
-    const savedVolume = localStorage.getItem("sound-volume");
-
-    if (savedMuted !== null) {
-      setIsMuted(savedMuted === "true");
-    }
-    if (savedVolume !== null) {
-      setVolume(parseFloat(savedVolume));
-    }
-  }, []);
-
-  // Save preferences to localStorage
-  useEffect(() => {
-    localStorage.setItem("sound-muted", String(isMuted));
-    localStorage.setItem("sound-volume", String(volume));
-  }, [isMuted, volume]);
+  // Persist sound preferences. Defaults to muted; useLocalStorage renders the
+  // default on the server and hydrates the saved value on the client.
+  const [isMuted, setIsMuted] = useLocalStorage<boolean>("sound-muted", true);
+  const [volume, setVolume] = useLocalStorage<number>("sound-volume", 0.5);
 
   const playStartup = useCallback(() => {
     if (!isMuted && soundGenerator) {

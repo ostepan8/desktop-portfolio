@@ -37,14 +37,20 @@ export function PromptDialog({
   const [value, setValue] = useState(defaultValue);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Reset the field when the dialog opens — done during render (React's
+  // "adjust state on prop change" pattern) to avoid a setState-in-effect cascade.
+  const [wasOpen, setWasOpen] = useState(false);
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
+    if (isOpen) setValue(defaultValue);
+  }
+
   useEffect(() => {
-    if (isOpen) {
-      setValue(defaultValue);
-      // Focus after mount + microtask so AnimatePresence has mounted the panel.
-      const id = requestAnimationFrame(() => inputRef.current?.focus());
-      return () => cancelAnimationFrame(id);
-    }
-  }, [isOpen, defaultValue]);
+    if (!isOpen) return;
+    // Focus after mount + a frame so AnimatePresence has mounted the panel.
+    const id = requestAnimationFrame(() => inputRef.current?.focus());
+    return () => cancelAnimationFrame(id);
+  }, [isOpen]);
 
   const submit = () => onSubmit(value);
 

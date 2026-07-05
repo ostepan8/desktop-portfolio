@@ -12,7 +12,9 @@ export function BootSequence({ onComplete }: BootSequenceProps) {
   const [progress, setProgress] = useState(0);
   // Use a ref to avoid re-running effects when onComplete changes identity
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     // Check if we should skip the boot sequence

@@ -59,10 +59,18 @@
   --font-sans: var(--font-inter);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/*
+ * Keep the reset inside @layer base. Unlayered rules win over Tailwind's
+ * layered utilities, so an unlayered `* { margin:0; padding:0 }` silently
+ * zeroes out every p-*, m-*, gap-*, and space-y-* utility app-wide. Inside
+ * @layer base it still resets browser defaults but lets utilities override.
+ */
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 }
 
 html, body {

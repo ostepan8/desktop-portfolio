@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import {
   AboutThisMac,
@@ -113,6 +113,15 @@ function DesktopContent({
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
+  // Apps can launch other apps (e.g. Finder "Open in TextEdit"). They receive
+  // an `openApp` callback that must call the latest openAppWindow without the
+  // callback referencing itself before it's declared — route through a ref.
+  const openAppWindowRef = useRef<AppLaunchContext["openApp"]>(() => {});
+  const launchApp = useCallback<AppLaunchContext["openApp"]>(
+    (...args) => openAppWindowRef.current(...args),
+    [],
+  );
+
   const openAppWindow = useCallback<AppLaunchContext["openApp"]>(
     (appId, customTitle, initialArg) => {
       const app = APPS[appId];
@@ -151,13 +160,18 @@ function DesktopContent({
         height: app.defaultHeight,
         minWidth: app.minWidth,
         minHeight: app.minHeight,
-        component: app.render({ initialArg, openApp: openAppWindow }),
+        component: app.render({ initialArg, openApp: launchApp }),
       });
       onWindowOpen?.();
       setActiveApp(title);
     },
-    [getWindowsByApp, focusWindow, openWindow, onWindowOpen],
+    [getWindowsByApp, focusWindow, openWindow, onWindowOpen, launchApp],
   );
+
+  // Keep the ref pointed at the latest openAppWindow so launchApp stays current.
+  useEffect(() => {
+    openAppWindowRef.current = openAppWindow;
+  }, [openAppWindow]);
 
   const handleDockItemClick = useCallback(
     (id: string) => openAppWindow(id as AppId),

@@ -99,17 +99,20 @@ export function Dock({ items, onItemClick, onQuitApp, onShowInFinder }: DockProp
         transition={{ type: "spring", stiffness: 300, damping: 30, delay: 0.2 }}
       >
         <div className="bg-[#1c1c1e]/95 backdrop-blur-xl border-t border-white/10 px-2 py-2">
-          <div className="flex items-center justify-around max-w-md mx-auto">
-            {items.slice(0, 5).map((item) => (
-              <MobileDockItem
-                key={item.id}
-                item={item}
-                onClick={() => {
-                  item.onClick?.();
-                  onItemClick?.(item.id);
-                }}
-              />
-            ))}
+          {/* Scrollable so every app stays reachable; centered when it fits. */}
+          <div className="flex items-center overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex items-center gap-1 mx-auto">
+              {items.map((item) => (
+                <MobileDockItem
+                  key={item.id}
+                  item={item}
+                  onClick={() => {
+                    item.onClick?.();
+                    onItemClick?.(item.id);
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </motion.div>
@@ -206,7 +209,9 @@ function DockIcon({ item, mouseX, onClick, onContextMenu }: DockIconProps) {
 
   return (
     <div className="relative flex flex-col items-center">
-      <Tooltip visible={isHovered} label={item.label} placement="top" offset={40} />
+      {/* offset must clear the magnified icon (max 72px tall) so the dark
+          tooltip panel floats above it instead of peeking out behind it. */}
+      <Tooltip visible={isHovered} label={item.label} placement="top" offset={82} />
 
       <motion.div
         ref={ref}
