@@ -5,7 +5,6 @@ import {
   FinderIcon,
   GitHubIcon,
   PreviewIcon,
-  ProjectsIcon,
   SafariIcon,
   SettingsIcon,
   TerminalIcon,
@@ -18,7 +17,6 @@ import {
   Finder,
   GitHubApp,
   PdfViewer,
-  Projects,
   Safari,
   Settings,
   Terminal,
@@ -31,7 +29,6 @@ export type AppId =
   | "finder"
   | "safari"
   | "about"
-  | "projects"
   | "github"
   | "videos"
   | "basketball"
@@ -146,24 +143,11 @@ export const APPS: Record<AppId, AppDefinition> = {
     searchable: true,
     render: () => <AboutMe />,
   },
-  projects: {
-    id: "projects",
-    label: "Projects",
-    Icon: ProjectsIcon,
-    subtitle: "Portfolio showcase",
-    defaultWidth: 700,
-    defaultHeight: 500,
-    minWidth: 400,
-    minHeight: 300,
-    inDock: true,
-    searchable: true,
-    render: () => <Projects />,
-  },
   github: {
     id: "github",
-    label: "GitHub",
+    label: "Projects",
     Icon: GitHubIcon,
-    subtitle: "Live repositories",
+    subtitle: "Live from GitHub",
     defaultWidth: 780,
     defaultHeight: 560,
     minWidth: 420,
@@ -269,7 +253,6 @@ export const APP_LIST: readonly AppDefinition[] = [
   APPS.finder,
   APPS.safari,
   APPS.about,
-  APPS.projects,
   APPS.github,
   APPS.videos,
   APPS.basketball,

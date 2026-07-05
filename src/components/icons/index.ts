@@ -5,7 +5,6 @@ export {
   TextEditIcon,
   SettingsIcon,
   AboutIcon,
-  ProjectsIcon,
   GitHubIcon,
   VideosIcon,
   BasketballAppIcon,

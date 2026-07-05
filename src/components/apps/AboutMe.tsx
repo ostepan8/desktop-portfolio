@@ -3,13 +3,12 @@
 import { motion } from "framer-motion";
 import { BRAND_ICONS } from "@/constants/brand-icons";
 import { SOCIAL_LINKS } from "@/constants/social-links";
-import {
-  EXPERIENCE,
-  PROFILE,
-  PROFILE_STATS,
-  SKILL_GROUPS,
-} from "@/constants/profile";
+import { PROFILE } from "@/constants/profile";
 
+/**
+ * Deliberately NOT a resume. Credentials live in Resume.pdf (one click away);
+ * this card is just who Owen is and where to look next.
+ */
 export function AboutMe() {
   return (
     <div className="h-full bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f3460] overflow-auto">
@@ -43,20 +42,12 @@ export function AboutMe() {
 
           {/* Title */}
           <motion.p
-            className="text-lg text-purple-300 mb-1"
+            className="text-lg text-purple-300 mb-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
             {PROFILE.title}
-          </motion.p>
-          <motion.p
-            className="text-sm text-white/50 mb-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.45 }}
-          >
-            {PROFILE.currentRole} · {PROFILE.location}
           </motion.p>
 
           {/* Bio */}
@@ -70,102 +61,28 @@ export function AboutMe() {
           </motion.p>
         </motion.div>
 
-        {/* Stats/Info */}
+        {/* Where to look next — the desktop shows what the resume can't. */}
         <motion.div
-          className="grid grid-cols-3 gap-6 mb-8 text-center"
+          className="grid grid-cols-3 gap-3 mb-8 text-center max-w-md"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          {PROFILE_STATS.map((stat) => (
-            <div
-              key={stat.label}
-              className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10"
-            >
-              <div className="text-2xl font-bold text-white">{stat.value}</div>
-              <div className="text-sm text-white/50">{stat.label}</div>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Skills */}
-        <motion.div
-          className="mb-8 w-full max-w-lg"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-        >
-          {SKILL_GROUPS.map((group, groupIndex) => (
-            <div key={group.label} className="mb-4">
-              <h3 className="text-xs text-white/50 uppercase tracking-wider text-center mb-2">
-                {group.label}
-              </h3>
-              <div className="flex flex-wrap justify-center gap-2">
-                {group.skills.map((skill, index) => (
-                  <motion.span
-                    key={skill}
-                    className="px-3 py-1.5 bg-white/10 rounded-full text-sm text-white/80 border border-white/10"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.7 + groupIndex * 0.1 + index * 0.03 }}
-                  >
-                    {skill}
-                  </motion.span>
-                ))}
-              </div>
-            </div>
-          ))}
-        </motion.div>
-
-        {/* Experience timeline */}
-        <motion.div
-          className="mb-8 w-full max-w-lg"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-        >
-          <h3 className="text-xs text-white/50 uppercase tracking-wider text-center mb-3">
-            Experience
-          </h3>
-          <div className="space-y-3">
-            {EXPERIENCE.map((job, index) => (
-              <motion.details
-                key={job.company}
-                className="group bg-white/5 border border-white/10 rounded-xl overflow-hidden"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8 + index * 0.08 }}
-                open={index === 0}
-              >
-                <summary className="cursor-pointer list-none px-4 py-3 hover:bg-white/5 transition-colors">
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-sm font-semibold text-white">
-                      {job.role}
-                    </span>
-                    <span className="ml-auto shrink-0 text-xs text-white/40">
-                      {job.dates}
-                    </span>
-                  </div>
-                  <div className="text-xs text-purple-300/90 mt-0.5">
-                    {job.company} · {job.location}
-                  </div>
-                </summary>
-                <ul className="px-4 pb-3 space-y-1.5">
-                  {job.bullets.map((bullet) => (
-                    <li
-                      key={bullet}
-                      className="text-xs text-white/60 leading-relaxed pl-3 border-l border-purple-400/30"
-                    >
-                      {bullet}
-                    </li>
-                  ))}
-                </ul>
-              </motion.details>
-            ))}
+          <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10">
+            <div className="text-2xl mb-1">🐙</div>
+            <div className="text-xs text-white/50">Live repos in the Projects app</div>
+          </div>
+          <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10">
+            <div className="text-2xl mb-1">🎬</div>
+            <div className="text-xs text-white/50">Demos I&apos;ve shipped, in Videos</div>
+          </div>
+          <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10">
+            <div className="text-2xl mb-1">🏀</div>
+            <div className="text-xs text-white/50">The mixtape, in Basketball</div>
           </div>
         </motion.div>
 
-        {/* Resume button */}
+        {/* Resume button — the one pointer to credentials */}
         <motion.a
           href={PROFILE.resumePath}
           target="_blank"
@@ -173,9 +90,9 @@ export function AboutMe() {
           className="mb-8 px-5 py-2.5 rounded-lg bg-purple-500 text-white text-sm font-semibold hover:bg-purple-400 transition-colors"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.85 }}
+          transition={{ delay: 0.7 }}
         >
-          View Full Resume ↗
+          The Credentials → Resume.pdf
         </motion.a>
 
         {/* Social Links */}
@@ -183,7 +100,7 @@ export function AboutMe() {
           className="flex gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.9 }}
+          transition={{ delay: 0.8 }}
         >
           {SOCIAL_LINKS.map((link, index) => (
             <motion.a
@@ -195,7 +112,7 @@ export function AboutMe() {
               title={link.name}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.9 + index * 0.1 }}
+              transition={{ delay: 0.8 + index * 0.1 }}
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -215,12 +132,9 @@ export function AboutMe() {
           className="mt-8 text-center text-white/30 text-xs"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 1.2 }}
+          transition={{ delay: 1.1 }}
         >
-          <p>
-            {PROFILE.school} · Class of {PROFILE.gradYear}
-          </p>
-          <p className="mt-1">Built with Next.js, React & Framer Motion</p>
+          <p>Built with Next.js, React & Framer Motion</p>
         </motion.div>
       </div>
     </div>

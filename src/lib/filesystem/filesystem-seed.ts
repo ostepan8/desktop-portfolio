@@ -1,9 +1,9 @@
 import type { FileSystemItem } from "./types";
-import { BASKETBALL, EXPERIENCE, PROFILE } from "@/constants/profile";
+import { BASKETBALL, PROFILE } from "@/constants/profile";
 
-// v3: bumped when the seed content changes so returning visitors whose
+// v4: bumped when the seed content changes so returning visitors whose
 // localStorage holds the old snapshot pick up the new files.
-export const STORAGE_KEY = "desktop-portfolio-fs-v3";
+export const STORAGE_KEY = "desktop-portfolio-fs-v4";
 
 /**
  * Seed data used when localStorage is empty. Root nodes appear in Finder's
@@ -50,19 +50,14 @@ export function createDefaultFileSystem(): FileSystemItem[] {
 Welcome to my desktop. This is a macOS-inspired portfolio I built with
 Next.js, React, TypeScript, and Framer Motion.
 
-About me:
-- CS student at Northeastern (AI concentration, Robotics minor), class of ${PROFILE.gradYear}
-- Currently a Software Engineer Co-op at Subconscious.dev, an MIT CSAIL
-  spinout, building AI agent benchmarking infrastructure on AWS
-- Previously: Android co-op at Ahold Delhaize, Code4Community, and my own
-  startup (Feed Tech LLC)
-- Former varsity basketball captain at Francis W. Parker in Chicago
+The rule around here: nothing you could read on my resume. That's what
+Resume.pdf is for — one double-click away. The desktop is for the stuff
+a PDF can't do.
 
 Things to try:
-- Open the GitHub app to browse my repositories live
-- Double-click Resume.pdf to read my resume
-- Check the Basketball app for my high school stats and senior mixtape
-- Open Videos for my Subconscious demos and motion-graphics explainers
+- Open Projects to browse my GitHub live
+- Watch my senior-year mixtape in the Basketball app
+- Open Videos for demos of things I've shipped
 - Type 'neofetch' in the Terminal
 
 - Owen`,
@@ -87,37 +82,6 @@ Things to try:
       type: "folder",
       icon: "📁",
       parentId: "documents",
-      createdAt: now,
-      modifiedAt: now,
-    },
-    {
-      id: "now-playing",
-      name: "now.txt",
-      type: "file",
-      icon: "📄",
-      parentId: "documents",
-      content: `What I'm up to right now:
-
-- Co-op at Subconscious.dev: agent benchmarking platform, AWS Step
-  Functions / Fargate / Aurora, and Gastown — an autonomous dev pipeline
-  that takes Linear tickets to pull requests.
-- Studying: AI concentration coursework, reinforcement learning.
-- Building: this portfolio, JARVIS home automation, side agents.`,
-      createdAt: now,
-      modifiedAt: now,
-    },
-    {
-      id: "experience-doc",
-      name: "experience.txt",
-      type: "file",
-      icon: "💼",
-      parentId: "documents",
-      content: EXPERIENCE.map(
-        (job) =>
-          `${job.role} — ${job.company}\n${job.dates} · ${job.location}\n${job.bullets
-            .map((b) => `  • ${b}`)
-            .join("\n")}`,
-      ).join("\n\n"),
       createdAt: now,
       modifiedAt: now,
     },
@@ -191,39 +155,8 @@ Full stats: ${BASKETBALL.maxprepsUrl}`,
       createdAt: now,
       modifiedAt: now,
     },
-    // Projects folder contents — READMEs for the highlights, plus a link to
-    // the live GitHub view for everything else.
-    {
-      id: "project-gastown",
-      name: "gastown-agent-pipeline",
-      type: "folder",
-      icon: "📂",
-      parentId: "projects",
-      createdAt: now,
-      modifiedAt: now,
-    },
-    {
-      id: "project-gastown-readme",
-      name: "README.md",
-      type: "file",
-      icon: "📄",
-      parentId: "project-gastown",
-      content: `# Gastown — Autonomous Dev Pipeline
-
-Built during my co-op at Subconscious.dev.
-
-A planner agent and an implementer agent take Linear tickets from
-specification to pull request, wired together with Linear MCP and GitHub
-MCP, running on AWS Lambda with FastAPI and Anthropic Managed Agents.
-Milestone-scoped Slack notifications keep humans in the loop.
-
-## Tech
-- Anthropic Managed Agents (Sonnet planner + implementer)
-- AWS Lambda, FastAPI
-- Linear MCP, GitHub MCP`,
-      createdAt: now,
-      modifiedAt: now,
-    },
+    // Projects folder contents — READMEs for side projects the resume
+    // doesn't cover, plus a link to the live GitHub view for everything else.
     {
       id: "project-jarvis",
       name: "jarvis",
