@@ -1,9 +1,9 @@
 import type { FileSystemItem } from "./types";
-import { BASKETBALL, PROFILE } from "@/constants/profile";
+import { BASKETBALL, EXPERIENCE, PROFILE } from "@/constants/profile";
 
-// v2: bumped when the seed content changes so returning visitors whose
+// v3: bumped when the seed content changes so returning visitors whose
 // localStorage holds the old snapshot pick up the new files.
-export const STORAGE_KEY = "desktop-portfolio-fs-v2";
+export const STORAGE_KEY = "desktop-portfolio-fs-v3";
 
 /**
  * Seed data used when localStorage is empty. Root nodes appear in Finder's
@@ -61,8 +61,8 @@ About me:
 Things to try:
 - Open the GitHub app to browse my repositories live
 - Double-click Resume.pdf to read my resume
-- Check the Basketball app for my high school stats
-- Open Videos for some motion-graphics explainers I made
+- Check the Basketball app for my high school stats and senior mixtape
+- Open Videos for my Subconscious demos and motion-graphics explainers
 - Type 'neofetch' in the Terminal
 
 - Owen`,
@@ -103,6 +103,21 @@ Things to try:
   that takes Linear tickets to pull requests.
 - Studying: AI concentration coursework, reinforcement learning.
 - Building: this portfolio, JARVIS home automation, side agents.`,
+      createdAt: now,
+      modifiedAt: now,
+    },
+    {
+      id: "experience-doc",
+      name: "experience.txt",
+      type: "file",
+      icon: "💼",
+      parentId: "documents",
+      content: EXPERIENCE.map(
+        (job) =>
+          `${job.role} — ${job.company}\n${job.dates} · ${job.location}\n${job.bullets
+            .map((b) => `  • ${b}`)
+            .join("\n")}`,
+      ).join("\n\n"),
       createdAt: now,
       modifiedAt: now,
     },
@@ -153,6 +168,16 @@ Honors:
 ${BASKETBALL.achievements.map((a) => `- ${a}`).join("\n")}
 
 Full stats: ${BASKETBALL.maxprepsUrl}`,
+      createdAt: now,
+      modifiedAt: now,
+    },
+    {
+      id: "bball-mixtape",
+      name: "parker-mixtape.mp4",
+      type: "file",
+      icon: "🎬",
+      parentId: "basketball-folder",
+      url: "hoops-mixtape",
       createdAt: now,
       modifiedAt: now,
     },

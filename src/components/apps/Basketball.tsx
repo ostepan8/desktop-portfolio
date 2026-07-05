@@ -3,11 +3,16 @@
 import { motion } from "framer-motion";
 import { BASKETBALL, PROFILE } from "@/constants/profile";
 
+interface BasketballProps {
+  /** Opens the Videos app on the mixtape. Wired by the app registry. */
+  onWatchMixtape?: () => void;
+}
+
 /**
  * Scoreboard-style card for Owen's high school basketball career.
  * Data lives in src/constants/profile.ts (sourced from MaxPreps).
  */
-export function Basketball() {
+export function Basketball({ onWatchMixtape }: BasketballProps) {
   return (
     <div className="h-full overflow-auto bg-gradient-to-b from-[#1a0f08] via-[#241205] to-[#0d0603]">
       <div className="max-w-xl mx-auto p-6">
@@ -120,13 +125,21 @@ export function Basketball() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="text-center pb-4"
+          className="flex flex-wrap justify-center gap-3 pb-4"
         >
+          {onWatchMixtape && (
+            <button
+              onClick={onWatchMixtape}
+              className="px-5 py-2.5 rounded-lg bg-white text-orange-950 text-sm font-semibold hover:bg-orange-100 transition-colors"
+            >
+              ▶ Watch the Mixtape
+            </button>
+          )}
           <a
             href={BASKETBALL.maxprepsUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block px-5 py-2.5 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-500 transition-colors"
+            className="px-5 py-2.5 rounded-lg bg-orange-600 text-white text-sm font-semibold hover:bg-orange-500 transition-colors"
           >
             Full Stats on MaxPreps ↗
           </a>

@@ -3,7 +3,12 @@
 import { motion } from "framer-motion";
 import { BRAND_ICONS } from "@/constants/brand-icons";
 import { SOCIAL_LINKS } from "@/constants/social-links";
-import { PROFILE, PROFILE_STATS, SKILL_GROUPS } from "@/constants/profile";
+import {
+  EXPERIENCE,
+  PROFILE,
+  PROFILE_STATS,
+  SKILL_GROUPS,
+} from "@/constants/profile";
 
 export function AboutMe() {
   return (
@@ -111,6 +116,67 @@ export function AboutMe() {
             </div>
           ))}
         </motion.div>
+
+        {/* Experience timeline */}
+        <motion.div
+          className="mb-8 w-full max-w-lg"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+        >
+          <h3 className="text-xs text-white/50 uppercase tracking-wider text-center mb-3">
+            Experience
+          </h3>
+          <div className="space-y-3">
+            {EXPERIENCE.map((job, index) => (
+              <motion.details
+                key={job.company}
+                className="group bg-white/5 border border-white/10 rounded-xl overflow-hidden"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 + index * 0.08 }}
+                open={index === 0}
+              >
+                <summary className="cursor-pointer list-none px-4 py-3 hover:bg-white/5 transition-colors">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-semibold text-white">
+                      {job.role}
+                    </span>
+                    <span className="ml-auto shrink-0 text-xs text-white/40">
+                      {job.dates}
+                    </span>
+                  </div>
+                  <div className="text-xs text-purple-300/90 mt-0.5">
+                    {job.company} · {job.location}
+                  </div>
+                </summary>
+                <ul className="px-4 pb-3 space-y-1.5">
+                  {job.bullets.map((bullet) => (
+                    <li
+                      key={bullet}
+                      className="text-xs text-white/60 leading-relaxed pl-3 border-l border-purple-400/30"
+                    >
+                      {bullet}
+                    </li>
+                  ))}
+                </ul>
+              </motion.details>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Resume button */}
+        <motion.a
+          href={PROFILE.resumePath}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mb-8 px-5 py-2.5 rounded-lg bg-purple-500 text-white text-sm font-semibold hover:bg-purple-400 transition-colors"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.85 }}
+        >
+          View Full Resume ↗
+        </motion.a>
 
         {/* Social Links */}
         <motion.div

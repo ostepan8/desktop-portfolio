@@ -51,6 +51,60 @@ export const SKILL_GROUPS: readonly { label: string; skills: readonly string[] }
   },
 ];
 
+export interface ExperienceEntry {
+  readonly company: string;
+  readonly role: string;
+  readonly dates: string;
+  readonly location: string;
+  readonly bullets: readonly string[];
+}
+
+/** Work history, condensed from the resume. Newest first. */
+export const EXPERIENCE: readonly ExperienceEntry[] = [
+  {
+    company: "Subconscious.dev (MIT CSAIL spinout)",
+    role: "Software Engineer Co-op",
+    dates: "Jan 2026 – Present",
+    location: "Cambridge, MA",
+    bullets: [
+      "Cut new-customer benchmark setup from weeks to hours with a platform that generates complete synthetic environments — seeded database, dedicated server, MCP layer, and realistic workflow scenarios — for any domain.",
+      "Built the AWS engine that runs hundreds of environments in parallel: Step Functions Distributed Map fanning into ephemeral ECS Fargate tasks and per-benchmark Aurora Serverless v2 databases, deployed with SST and Pulumi.",
+      "Closed the model-improvement loop by converting agent traces into supervised fine-tuning datasets — a continuous data flywheel.",
+      "Built Gastown, an autonomous dev pipeline where planner and implementer agents take Linear tickets from spec to pull request via Linear MCP and GitHub MCP.",
+      "Launched five demo products (AI Degree Planner, Resume Tailor, E2B CLI, Subconscious Co-op, Background Agent Emailer) reaching 100+ combined users.",
+    ],
+  },
+  {
+    company: "Ahold Delhaize",
+    role: "Mobile Application Engineer Co-op",
+    dates: "Jan 2025 – Jun 2025",
+    location: "Quincy, MA",
+    bullets: [
+      "Owned a new multi-module Android app end-to-end: wrote all 50+ Jetpack Compose components and a JUnit 5 testing framework that hit 100% code coverage in CI/CD.",
+      "Cut database size and query latency in a React Native auditing app by replacing base64 signature storage with an ID-based Node.js and MongoDB schema.",
+    ],
+  },
+  {
+    company: "Code4Community",
+    role: "Developer",
+    dates: "Sep 2024 – Present",
+    location: "Boston, MA",
+    bullets: [
+      "Own authentication and account management for ShelterLink, a React Native and Nest.js housing app serving LGBTQ+ individuals.",
+      "Shipped secure auth flows, user profiles, and an interactive housing map with advanced filtering in Agile sprints.",
+    ],
+  },
+  {
+    company: "Feed Tech LLC",
+    role: "CEO & Full-Stack Developer",
+    dates: "Dec 2022 – Present",
+    location: "Chicago, IL",
+    bullets: [
+      "Founded in high school; led end-to-end development of Feed Official, a MERN social platform with a Next.js companion app — scaled to 150+ active users and 700+ posts.",
+    ],
+  },
+];
+
 export interface StatLine {
   readonly label: string;
   readonly value: string;
