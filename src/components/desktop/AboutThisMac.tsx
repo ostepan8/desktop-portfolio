@@ -92,7 +92,7 @@ export function AboutThisMac({ isOpen, onClose }: AboutThisMacProps) {
                 </p>
                 <div className="flex justify-center gap-4 mt-3">
                   <a
-                    href="https://github.com/ostepan/desktop-portfolio"
+                    href="https://github.com/ostepan8/desktop-portfolio"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-blue-400 hover:underline"

@@ -60,7 +60,7 @@ export function Terminal() {
 
   // Get prompt string
   const getPrompt = useCallback(() => {
-    return `guest@portfolio:${getCurrentDirName()}$`;
+    return `owen@portfolio:${getCurrentDirName()}$`;
   }, [getCurrentDirName]);
 
   // Add output line
@@ -171,16 +171,16 @@ Easter eggs? Try typing something fun! 🥚`);
 
       case "pwd": {
         if (currentDir === null) {
-          addOutput("/Users/guest");
+          addOutput("/Users/owen");
         } else {
           const path = getPath(currentDir);
-          addOutput("/Users/guest/" + path.map((p) => p.name).join("/"));
+          addOutput("/Users/owen/" + path.map((p) => p.name).join("/"));
         }
         break;
       }
 
       case "whoami":
-        addOutput("guest");
+        addOutput("owen");
         break;
 
       case "echo":
@@ -205,11 +205,11 @@ Easter eggs? Try typing something fun! 🥚`);
 
       case "neofetch":
         addOutput(`
-       ████████████████       guest@portfolio
+       ████████████████       owen@portfolio
    ████████████████████████   ---------------
  ████████████████████████████ OS: Portfolio OS 1.0
-█████████████████████████████ Host: Next.js 14
-█████████████████████████████ Kernel: React 18
+█████████████████████████████ Host: Next.js 16
+█████████████████████████████ Kernel: React 19
 █████████████████████████████ Shell: Terminal 1.0
 █████████████████████████████ Resolution: ${window.innerWidth}x${window.innerHeight}
  ████████████████████████████ Theme: macOS Dark

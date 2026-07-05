@@ -13,5 +13,8 @@ export const DEFAULT_DESKTOP_ICONS: DesktopIconData[] = [
   { id: "macintosh-hd", label: "Macintosh HD", icon: "💻", type: "drive" },
   { id: "documents", label: "Documents", icon: "📁", type: "folder" },
   { id: "projects", label: "Projects", icon: "📂", type: "folder" },
+  { id: "resume", label: "Resume.pdf", icon: "📋", type: "file" },
+  { id: "basketball", label: "Basketball", icon: "🏀", type: "app", appId: "basketball" },
+  { id: "videos", label: "Videos", icon: "🎬", type: "app", appId: "videos" },
   { id: "readme", label: "README.txt", icon: "📄", type: "file" },
 ];

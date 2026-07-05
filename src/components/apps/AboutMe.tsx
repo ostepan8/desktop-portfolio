@@ -3,11 +3,7 @@
 import { motion } from "framer-motion";
 import { BRAND_ICONS } from "@/constants/brand-icons";
 import { SOCIAL_LINKS } from "@/constants/social-links";
-
-const SKILLS = [
-  "React", "TypeScript", "Next.js", "Node.js",
-  "Python", "PostgreSQL", "AWS", "Docker",
-];
+import { PROFILE, PROFILE_STATS, SKILL_GROUPS } from "@/constants/profile";
 
 export function AboutMe() {
   return (
@@ -22,12 +18,12 @@ export function AboutMe() {
         >
           {/* Avatar */}
           <motion.div
-            className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-6xl shadow-2xl shadow-purple-500/30"
+            className="w-32 h-32 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-5xl font-bold text-white shadow-2xl shadow-purple-500/30"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
           >
-            👨‍💻
+            OS
           </motion.div>
 
           {/* Name */}
@@ -37,17 +33,25 @@ export function AboutMe() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            Oleg Stepanenko
+            {PROFILE.name}
           </motion.h1>
 
           {/* Title */}
           <motion.p
-            className="text-lg text-purple-300 mb-4"
+            className="text-lg text-purple-300 mb-1"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            Full Stack Developer
+            {PROFILE.title}
+          </motion.p>
+          <motion.p
+            className="text-sm text-white/50 mb-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.45 }}
+          >
+            {PROFILE.currentRole} · {PROFILE.location}
           </motion.p>
 
           {/* Bio */}
@@ -57,10 +61,7 @@ export function AboutMe() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
           >
-            Passionate about building beautiful, performant web experiences.
-            I love turning complex problems into simple, elegant solutions.
-            When I&apos;m not coding, you&apos;ll find me exploring new technologies
-            or contributing to open source.
+            {PROFILE.bio}
           </motion.p>
         </motion.div>
 
@@ -71,43 +72,44 @@ export function AboutMe() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
         >
-          <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10">
-            <div className="text-2xl font-bold text-white">5+</div>
-            <div className="text-sm text-white/50">Years Experience</div>
-          </div>
-          <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10">
-            <div className="text-2xl font-bold text-white">50+</div>
-            <div className="text-sm text-white/50">Projects Completed</div>
-          </div>
-          <div className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10">
-            <div className="text-2xl font-bold text-white">10k+</div>
-            <div className="text-sm text-white/50">Lines of Code</div>
-          </div>
+          {PROFILE_STATS.map((stat) => (
+            <div
+              key={stat.label}
+              className="bg-white/5 rounded-xl p-4 backdrop-blur-sm border border-white/10"
+            >
+              <div className="text-2xl font-bold text-white">{stat.value}</div>
+              <div className="text-sm text-white/50">{stat.label}</div>
+            </div>
+          ))}
         </motion.div>
 
         {/* Skills */}
         <motion.div
-          className="mb-8"
+          className="mb-8 w-full max-w-lg"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
         >
-          <h3 className="text-sm text-white/50 uppercase tracking-wider text-center mb-3">
-            Technologies
-          </h3>
-          <div className="flex flex-wrap justify-center gap-2">
-            {SKILLS.map((skill, index) => (
-              <motion.span
-                key={skill}
-                className="px-3 py-1.5 bg-white/10 rounded-full text-sm text-white/80 border border-white/10"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.7 + index * 0.05 }}
-              >
-                {skill}
-              </motion.span>
-            ))}
-          </div>
+          {SKILL_GROUPS.map((group, groupIndex) => (
+            <div key={group.label} className="mb-4">
+              <h3 className="text-xs text-white/50 uppercase tracking-wider text-center mb-2">
+                {group.label}
+              </h3>
+              <div className="flex flex-wrap justify-center gap-2">
+                {group.skills.map((skill, index) => (
+                  <motion.span
+                    key={skill}
+                    className="px-3 py-1.5 bg-white/10 rounded-full text-sm text-white/80 border border-white/10"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.7 + groupIndex * 0.1 + index * 0.03 }}
+                  >
+                    {skill}
+                  </motion.span>
+                ))}
+              </div>
+            </div>
+          ))}
         </motion.div>
 
         {/* Social Links */}
@@ -149,7 +151,9 @@ export function AboutMe() {
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2 }}
         >
-          <p>Portfolio v1.0.0</p>
+          <p>
+            {PROFILE.school} · Class of {PROFILE.gradYear}
+          </p>
           <p className="mt-1">Built with Next.js, React & Framer Motion</p>
         </motion.div>
       </div>

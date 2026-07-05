@@ -7,13 +7,15 @@ import { useDoubleClick } from "@/hooks/useDoubleClick";
 import { useKeyDown } from "@/hooks/useKeyDown";
 import { useSelectionRect, type BoundedItem } from "@/hooks/useSelectionRect";
 import { GRID_SIZE } from "@/constants/layout";
-import { FolderIcon, FileIcon, DriveIcon } from "@/components/icons";
+import { AppIcon, FolderIcon, FileIcon, DriveIcon } from "@/components/icons";
 
 export interface DesktopIconData {
   id: string;
   label: string;
   icon: string;
   type: "folder" | "file" | "app" | "drive";
+  /** For type "app": which squircle app icon to render (AppIconMap key). */
+  appId?: string;
   onOpen?: () => void;
 }
 
@@ -282,7 +284,7 @@ function MobileDesktopIcon({ icon, onClick }: MobileDesktopIconProps) {
       whileTap={{ scale: 0.95 }}
     >
       <div className="w-14 h-14 flex items-center justify-center">
-        <IconGraphic type={icon.type} size={56} />
+        <IconGraphic type={icon.type} appId={icon.appId} size={56} />
       </div>
       <span className="text-[10px] text-white/80 font-medium text-center w-16 truncate">
         {icon.label}
@@ -343,7 +345,7 @@ function DesktopIcon({
               : "group-hover:bg-white/10")
         }
       >
-        <IconGraphic type={icon.type} size={64} />
+        <IconGraphic type={icon.type} appId={icon.appId} size={64} />
       </div>
 
       <div
@@ -374,11 +376,14 @@ function DesktopIcon({
  */
 function IconGraphic({
   type,
+  appId,
   size,
 }: {
   type: DesktopIconData["type"];
+  appId?: string;
   size: number;
 }) {
+  if (type === "app" && appId) return <AppIcon appId={appId} size={size} />;
   if (type === "drive") return <DriveIcon size={size} />;
   if (type === "folder") return <FolderIcon size={size} />;
   return <FileIcon size={size} />;

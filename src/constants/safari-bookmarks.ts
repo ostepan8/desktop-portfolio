@@ -10,8 +10,8 @@ export interface Bookmark {
 
 export const BOOKMARKS: Bookmark[] = [
   // Social
-  { id: "github", title: "GitHub", url: "https://github.com/ostepan", iconId: "github", category: "Social" },
-  { id: "linkedin", title: "LinkedIn", url: "https://linkedin.com/in/ostepan", iconId: "linkedin", category: "Social" },
+  { id: "github", title: "GitHub", url: "https://github.com/ostepan8", iconId: "github", category: "Social" },
+  { id: "linkedin", title: "LinkedIn", url: "https://linkedin.com/in/owen-stepan", iconId: "linkedin", category: "Social" },
   { id: "twitter", title: "Twitter / X", url: "https://x.com", iconId: "twitter", category: "Social" },
 
   // Development
