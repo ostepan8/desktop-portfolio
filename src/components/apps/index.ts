@@ -8,3 +8,5 @@ export { GitHubApp } from "./GitHubApp";
 export { VideoPlayer } from "./VideoPlayer";
 export { Basketball } from "./Basketball";
 export { PdfViewer } from "./PdfViewer";
+export { FightingGame } from "./games/fighting/FightingGame";
+export { ArbHunter } from "./games/arb/ArbHunter";

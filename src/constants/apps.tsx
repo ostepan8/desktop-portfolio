@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
 import {
   AboutIcon,
+  ArbHunterIcon,
   BasketballAppIcon,
   FinderIcon,
   GitHubIcon,
   PreviewIcon,
+  RematchIcon,
   SafariIcon,
   SettingsIcon,
   TerminalIcon,
@@ -13,7 +15,9 @@ import {
 } from "@/components/icons/AppIcons";
 import {
   AboutMe,
+  ArbHunter,
   Basketball,
+  FightingGame,
   Finder,
   GitHubApp,
   PdfViewer,
@@ -32,6 +36,8 @@ export type AppId =
   | "github"
   | "videos"
   | "basketball"
+  | "rematch"
+  | "arbhunter"
   | "pdfviewer"
   | "terminal"
   | "textedit"
@@ -76,6 +82,11 @@ function openFileFromFinder(
   item: FileSystemItem,
   openApp: AppLaunchContext["openApp"],
 ): void {
+  // App shortcuts in the fake FS launch their app directly.
+  if (item.type === "app" && item.appId) {
+    openApp(item.appId as AppId, item.name);
+    return;
+  }
   const ext = item.name.split(".").pop()?.toLowerCase() ?? "";
   if (ext === "pdf") {
     openApp("pdfviewer", item.name, item.url ?? null);
@@ -190,6 +201,32 @@ export const APPS: Record<AppId, AppDefinition> = {
       />
     ),
   },
+  rematch: {
+    id: "rematch",
+    label: "Rematch!",
+    Icon: RematchIcon,
+    subtitle: "2D fighter — homage to my 2022 game",
+    defaultWidth: 900,
+    defaultHeight: 580,
+    minWidth: 560,
+    minHeight: 400,
+    inDock: true,
+    searchable: true,
+    render: () => <FightingGame />,
+  },
+  arbhunter: {
+    id: "arbhunter",
+    label: "Arb Hunter",
+    Icon: ArbHunterIcon,
+    subtitle: "Spot the arbitrage before it closes",
+    defaultWidth: 760,
+    defaultHeight: 560,
+    minWidth: 520,
+    minHeight: 420,
+    inDock: true,
+    searchable: true,
+    render: () => <ArbHunter />,
+  },
   pdfviewer: {
     id: "pdfviewer",
     label: "Preview",
@@ -256,6 +293,8 @@ export const APP_LIST: readonly AppDefinition[] = [
   APPS.github,
   APPS.videos,
   APPS.basketball,
+  APPS.rematch,
+  APPS.arbhunter,
   APPS.pdfviewer,
   APPS.terminal,
   APPS.textedit,
