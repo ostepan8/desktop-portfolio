@@ -3,7 +3,7 @@ import { BASKETBALL, PROFILE } from "@/constants/profile";
 
 // v4: bumped when the seed content changes so returning visitors whose
 // localStorage holds the old snapshot pick up the new files.
-export const STORAGE_KEY = "desktop-portfolio-fs-v4";
+export const STORAGE_KEY = "desktop-portfolio-fs-v5";
 
 /**
  * Seed data used when localStorage is empty. Root nodes appear in Finder's
@@ -40,6 +40,35 @@ export function createDefaultFileSystem(): FileSystemItem[] {
       modifiedAt: now,
     },
     {
+      id: "games-folder",
+      name: "Games",
+      type: "folder",
+      icon: "🕹️",
+      parentId: null,
+      createdAt: now,
+      modifiedAt: now,
+    },
+    {
+      id: "game-rematch",
+      name: "Rematch!",
+      type: "app",
+      icon: "🥊",
+      parentId: "games-folder",
+      appId: "rematch",
+      createdAt: now,
+      modifiedAt: now,
+    },
+    {
+      id: "game-arbhunter",
+      name: "Arb Hunter",
+      type: "app",
+      icon: "📈",
+      parentId: "games-folder",
+      appId: "arbhunter",
+      createdAt: now,
+      modifiedAt: now,
+    },
+    {
       id: "readme",
       name: "README.txt",
       type: "file",
@@ -58,6 +87,8 @@ Things to try:
 - Open Projects to browse my GitHub live
 - Watch my senior-year mixtape in the Basketball app
 - Open Videos for demos of things I've shipped
+- Fight me in Rematch! (I rebuilt my 2022 fighting game from scratch)
+- Beat the books in Arb Hunter
 - Type 'neofetch' in the Terminal
 
 - Owen`,

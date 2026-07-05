@@ -9,6 +9,8 @@ export {
   VideosIcon,
   BasketballAppIcon,
   PreviewIcon,
+  RematchIcon,
+  ArbHunterIcon,
   FolderIcon,
   FileIcon,
   DriveIcon,

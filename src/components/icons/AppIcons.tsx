@@ -443,6 +443,88 @@ export function PreviewIcon({ size = 48, className }: IconProps) {
   );
 }
 
+export function RematchIcon({ size = 48, className }: IconProps) {
+  const bg = (
+    <>
+      <defs>
+        <linearGradient id="rematch-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#7c3aed" />
+          <stop offset="100%" stopColor="#4c1d95" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#rematch-bg)" />
+    </>
+  );
+  return (
+    <IconShell size={size} className={className} bg={bg}>
+      {/* Two boxing gloves squaring off over a VS bolt. */}
+      <circle cx="38" cy="52" r="17" fill="#ef4444" />
+      <rect x="30" y="62" width="16" height="12" rx="4" fill="#dc2626" />
+      <circle cx="82" cy="52" r="17" fill="#3b82f6" />
+      <rect x="74" y="62" width="16" height="12" rx="4" fill="#2563eb" />
+      <path
+        d="M64 78 L52 96 L60 96 L54 112 L72 90 L63 90 L70 78 Z"
+        fill="#fbbf24"
+      />
+    </IconShell>
+  );
+}
+
+export function ArbHunterIcon({ size = 48, className }: IconProps) {
+  const bg = (
+    <>
+      <defs>
+        <linearGradient id="arb-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#123024" />
+          <stop offset="100%" stopColor="#06130c" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#arb-bg)" />
+    </>
+  );
+  return (
+    <IconShell size={size} className={className} bg={bg}>
+      {/* Two diverging price lines and the gap between them — the arb. */}
+      <polyline
+        points="16,74 38,66 56,72 78,52 104,44"
+        fill="none"
+        stroke="#34d399"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <polyline
+        points="16,88 40,86 60,92 82,80 104,84"
+        fill="none"
+        stroke="#f87171"
+        strokeWidth="7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <line
+        x1="93"
+        y1="50"
+        x2="93"
+        y2="80"
+        stroke="#fbbf24"
+        strokeWidth="4"
+        strokeDasharray="5 4"
+      />
+      <text
+        x="60"
+        y="34"
+        textAnchor="middle"
+        fontSize="22"
+        fontWeight="bold"
+        fontFamily="monospace"
+        fill="#34d399"
+      >
+        %
+      </text>
+    </IconShell>
+  );
+}
+
 // Icon map for easy lookup
 export const AppIconMap: Record<string, React.ComponentType<IconProps>> = {
   finder: FinderIcon,
@@ -455,6 +537,8 @@ export const AppIconMap: Record<string, React.ComponentType<IconProps>> = {
   videos: VideosIcon,
   basketball: BasketballAppIcon,
   pdfviewer: PreviewIcon,
+  rematch: RematchIcon,
+  arbhunter: ArbHunterIcon,
   folder: FolderIcon,
   file: FileIcon,
   drive: DriveIcon,
