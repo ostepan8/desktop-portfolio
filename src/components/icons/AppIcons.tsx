@@ -275,30 +275,6 @@ export function AboutIcon({ size = 48, className }: IconProps) {
   );
 }
 
-export function ProjectsIcon({ size = 48, className }: IconProps) {
-  const bg = (
-    <>
-      <defs>
-        <linearGradient id="projects-bg" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffa927" />
-          <stop offset="100%" stopColor="#f56a00" />
-        </linearGradient>
-      </defs>
-      <rect width="120" height="120" fill="url(#projects-bg)" />
-    </>
-  );
-  return (
-    <IconShell size={size} className={className} bg={bg}>
-      {/* Briefcase: handle, body, lid seam, latch. */}
-      <rect x="46" y="28" width="28" height="18" rx="5" fill="none" stroke="#ffffff" strokeWidth="6" />
-      <rect x="20" y="42" width="80" height="54" rx="8" fill="#ffffff" />
-      <rect x="20" y="42" width="80" height="54" rx="8" fill="#000" fillOpacity="0.04" />
-      <line x1="20" y1="66" x2="100" y2="66" stroke="#f56a00" strokeWidth="3" strokeOpacity="0.35" />
-      <rect x="52" y="60" width="16" height="12" rx="2.5" fill="#f56a00" />
-    </IconShell>
-  );
-}
-
 export function FolderIcon({ size = 48, className }: IconProps) {
   // Folders aren't squircle tiles — keep the macOS two-tone folder silhouette,
   // but with a softer gradient and drop shadow to match the app set.
@@ -475,7 +451,6 @@ export const AppIconMap: Record<string, React.ComponentType<IconProps>> = {
   textedit: TextEditIcon,
   settings: SettingsIcon,
   about: AboutIcon,
-  projects: ProjectsIcon,
   github: GitHubIcon,
   videos: VideosIcon,
   basketball: BasketballAppIcon,
