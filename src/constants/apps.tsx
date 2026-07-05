@@ -198,7 +198,13 @@ export const APPS: Record<AppId, AppDefinition> = {
     minHeight: 400,
     inDock: true,
     searchable: true,
-    render: () => <Basketball />,
+    render: ({ openApp }) => (
+      <Basketball
+        onWatchMixtape={() =>
+          openApp("videos", "Owen's Parker Mixtape", "hoops-mixtape")
+        }
+      />
+    ),
   },
   pdfviewer: {
     id: "pdfviewer",
