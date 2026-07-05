@@ -1,28 +1,41 @@
 import type { ReactNode } from "react";
 import {
   AboutIcon,
+  BasketballAppIcon,
   FinderIcon,
+  GitHubIcon,
+  PreviewIcon,
   ProjectsIcon,
   SafariIcon,
   SettingsIcon,
   TerminalIcon,
   TextEditIcon,
+  VideosIcon,
 } from "@/components/icons/AppIcons";
 import {
   AboutMe,
+  Basketball,
   Finder,
+  GitHubApp,
+  PdfViewer,
   Projects,
   Safari,
   Settings,
   Terminal,
   TextEdit,
+  VideoPlayer,
 } from "@/components/apps";
+import type { FileSystemItem } from "@/lib/filesystem";
 
 export type AppId =
   | "finder"
   | "safari"
   | "about"
   | "projects"
+  | "github"
+  | "videos"
+  | "basketball"
+  | "pdfviewer"
   | "terminal"
   | "textedit"
   | "settings";
@@ -61,6 +74,24 @@ export interface AppDefinition {
   render: (ctx: AppLaunchContext) => ReactNode;
 }
 
+/** Route a Finder file to the right viewer app based on its extension. */
+function openFileFromFinder(
+  item: FileSystemItem,
+  openApp: AppLaunchContext["openApp"],
+): void {
+  const ext = item.name.split(".").pop()?.toLowerCase() ?? "";
+  if (ext === "pdf") {
+    openApp("pdfviewer", item.name, item.url ?? null);
+    return;
+  }
+  if (["mp4", "mov", "webm", "m4v"].includes(ext)) {
+    // initialArg is the playlist entry id stored on the file's url field.
+    openApp("videos", item.name, item.url ?? null);
+    return;
+  }
+  openApp("textedit", item.name, item.id);
+}
+
 /**
  * Unified app registry. Collapses four scattered mappings that used to live in
  * page.tsx (DOCK_ITEMS + the openAppWindow if/else + AppContent placeholder),
@@ -81,11 +112,11 @@ export const APPS: Record<AppId, AppDefinition> = {
     inDock: true,
     searchable: true,
     render: ({ initialArg, openApp }) => (
-      // Finder is the only app that hands off opened files to another app.
-      // Files open in TextEdit; folders navigate within Finder itself.
+      // Finder hands opened files off by type: PDFs → Preview, videos →
+      // Videos, everything else → TextEdit. Folders navigate within Finder.
       <Finder
         initialPath={initialArg ?? null}
-        onOpenFile={(item) => openApp("textedit", item.name, item.id)}
+        onOpenFile={(item) => openFileFromFinder(item, openApp)}
       />
     ),
   },
@@ -127,6 +158,62 @@ export const APPS: Record<AppId, AppDefinition> = {
     inDock: true,
     searchable: true,
     render: () => <Projects />,
+  },
+  github: {
+    id: "github",
+    label: "GitHub",
+    Icon: GitHubIcon,
+    subtitle: "Live repositories",
+    defaultWidth: 780,
+    defaultHeight: 560,
+    minWidth: 420,
+    minHeight: 320,
+    inDock: true,
+    searchable: true,
+    render: () => <GitHubApp />,
+  },
+  videos: {
+    id: "videos",
+    label: "Videos",
+    Icon: VideosIcon,
+    subtitle: "Video player",
+    defaultWidth: 820,
+    defaultHeight: 520,
+    minWidth: 480,
+    minHeight: 320,
+    inDock: true,
+    searchable: true,
+    render: ({ initialArg }) => (
+      <VideoPlayer initialVideoId={initialArg ?? undefined} />
+    ),
+  },
+  basketball: {
+    id: "basketball",
+    label: "Basketball",
+    Icon: BasketballAppIcon,
+    subtitle: "High school hoops career",
+    defaultWidth: 620,
+    defaultHeight: 640,
+    minWidth: 400,
+    minHeight: 400,
+    inDock: true,
+    searchable: true,
+    render: () => <Basketball />,
+  },
+  pdfviewer: {
+    id: "pdfviewer",
+    label: "Preview",
+    Icon: PreviewIcon,
+    subtitle: "Resume & documents",
+    defaultWidth: 720,
+    defaultHeight: 640,
+    minWidth: 400,
+    minHeight: 360,
+    inDock: false,
+    searchable: true,
+    render: ({ initialArg }) => (
+      <PdfViewer src={initialArg ?? undefined} />
+    ),
   },
   terminal: {
     id: "terminal",
@@ -177,6 +264,10 @@ export const APP_LIST: readonly AppDefinition[] = [
   APPS.safari,
   APPS.about,
   APPS.projects,
+  APPS.github,
+  APPS.videos,
+  APPS.basketball,
+  APPS.pdfviewer,
   APPS.terminal,
   APPS.textedit,
   APPS.settings,

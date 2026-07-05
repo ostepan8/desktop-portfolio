@@ -8,11 +8,13 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Desktop Portfolio",
-  description: "A macOS-style desktop experience in the browser",
+  title: "Owen Stepan — Desktop Portfolio",
+  description:
+    "Owen Stepan's portfolio: a macOS-style desktop in the browser. CS @ Northeastern, AI & full-stack engineer.",
   openGraph: {
-    title: "Desktop Portfolio",
-    description: "A macOS-style desktop experience in the browser",
+    title: "Owen Stepan — Desktop Portfolio",
+    description:
+      "A macOS-style desktop in the browser. Explore my projects, resume, and more.",
     type: "website",
   },
 };

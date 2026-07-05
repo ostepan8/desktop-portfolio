@@ -5,3 +5,7 @@ export { Projects } from "./Projects";
 export { TextEdit } from "./TextEdit";
 export { Safari } from "./Safari";
 export { Settings } from "./Settings";
+export { GitHubApp } from "./GitHubApp";
+export { VideoPlayer } from "./VideoPlayer";
+export { Basketball } from "./Basketball";
+export { PdfViewer } from "./PdfViewer";

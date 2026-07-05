@@ -72,7 +72,11 @@ const DESKTOP_ICON_TARGETS: Record<
 > = {
   "macintosh-hd": { appId: "finder", title: "Macintosh HD", arg: null },
   documents: { appId: "finder", title: "Documents", arg: "documents" },
-  projects: { appId: "finder", title: "Projects", arg: "projects" },
+  // The Projects folder opens the live GitHub repo browser.
+  projects: { appId: "github", title: "Projects — GitHub" },
+  resume: { appId: "pdfviewer", title: "Resume.pdf" },
+  basketball: { appId: "basketball", title: "Basketball" },
+  videos: { appId: "videos", title: "Videos" },
   readme: { appId: "textedit", title: "README.txt", arg: "readme" },
 };
 

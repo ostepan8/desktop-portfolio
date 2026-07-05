@@ -1,4 +1,5 @@
 import type { BrandIconId } from "./brand-icons";
+import { PROFILE } from "./profile";
 
 /**
  * Owen's own social profile URLs. Single source of truth so AboutMe and
@@ -16,25 +17,19 @@ export const SOCIAL_LINKS: readonly SocialLink[] = [
   {
     id: "github",
     name: "GitHub",
-    url: "https://github.com/ostepan",
+    url: PROFILE.githubUrl,
     brandColor: "#333",
   },
   {
     id: "linkedin",
     name: "LinkedIn",
-    url: "https://linkedin.com/in/ostepan",
+    url: PROFILE.linkedinUrl,
     brandColor: "#0A66C2",
-  },
-  {
-    id: "twitter",
-    name: "Twitter",
-    url: "https://x.com/ostepan",
-    brandColor: "#1DA1F2",
   },
   {
     id: "email",
     name: "Email",
-    url: "mailto:oleg@owen-stepan.com",
+    url: `mailto:${PROFILE.email}`,
     brandColor: "#EA4335",
   },
 ] as const;

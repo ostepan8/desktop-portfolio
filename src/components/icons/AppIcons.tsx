@@ -367,6 +367,106 @@ export function DriveIcon({ size = 48, className }: IconProps) {
   );
 }
 
+export function GitHubIcon({ size = 48, className }: IconProps) {
+  const bg = (
+    <>
+      <defs>
+        <linearGradient id="github-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3a3a3f" />
+          <stop offset="100%" stopColor="#141416" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#github-bg)" />
+    </>
+  );
+  return (
+    <IconShell size={size} className={className} bg={bg}>
+      {/* Octocat mark (simplified GitHub logomark). */}
+      <path
+        d="M60 24c-20 0-36 16.2-36 36.2 0 16 10.3 29.6 24.6 34.4 1.8.3 2.5-.8 2.5-1.7v-6.3c-10 2.2-12.2-4.3-12.2-4.3-1.6-4.2-4-5.3-4-5.3-3.3-2.3.2-2.2.2-2.2 3.6.3 5.5 3.7 5.5 3.7 3.2 5.6 8.5 4 10.5 3 .3-2.4 1.3-4 2.3-4.9-8-.9-16.4-4-16.4-17.9 0-4 1.4-7.2 3.7-9.7-.4-.9-1.6-4.6.3-9.6 0 0 3-1 9.9 3.7a34 34 0 0 1 18 0c6.9-4.7 9.9-3.7 9.9-3.7 1.9 5 .7 8.7.3 9.6 2.3 2.5 3.7 5.7 3.7 9.7 0 13.9-8.5 17-16.5 17.9 1.3 1.1 2.5 3.4 2.5 6.8v10c0 1 .7 2.1 2.5 1.7C85.7 89.8 96 76.2 96 60.2 96 40.2 80 24 60 24Z"
+        fill="#ffffff"
+      />
+    </IconShell>
+  );
+}
+
+export function VideosIcon({ size = 48, className }: IconProps) {
+  const bg = (
+    <>
+      <defs>
+        <linearGradient id="videos-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#3fa9f5" />
+          <stop offset="100%" stopColor="#0b57c9" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#videos-bg)" />
+    </>
+  );
+  return (
+    <IconShell size={size} className={className} bg={bg}>
+      {/* QuickTime-style Q ring with a play wedge. */}
+      <circle cx="60" cy="60" r="34" fill="none" stroke="#ffffff" strokeWidth="11" strokeOpacity="0.95" />
+      <path d="M52 44 L80 60 L52 76 Z" fill="#ffffff" />
+      <line x1="82" y1="82" x2="97" y2="97" stroke="#ffffff" strokeWidth="11" strokeLinecap="round" />
+    </IconShell>
+  );
+}
+
+export function BasketballAppIcon({ size = 48, className }: IconProps) {
+  const bg = (
+    <>
+      <defs>
+        <linearGradient id="bball-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#2b1608" />
+          <stop offset="100%" stopColor="#120a04" />
+        </linearGradient>
+        <radialGradient id="bball-ball" cx="0.35" cy="0.3" r="1">
+          <stop offset="0%" stopColor="#ff9d42" />
+          <stop offset="100%" stopColor="#d9541a" />
+        </radialGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#bball-bg)" />
+    </>
+  );
+  return (
+    <IconShell size={size} className={className} bg={bg}>
+      {/* Basketball with seams. */}
+      <circle cx="60" cy="60" r="38" fill="url(#bball-ball)" />
+      <g stroke="#7c2d12" strokeWidth="3.5" fill="none">
+        <path d="M60 22 V98" />
+        <path d="M22 60 H98" />
+        <path d="M33 33 Q60 60 33 87" />
+        <path d="M87 33 Q60 60 87 87" />
+      </g>
+    </IconShell>
+  );
+}
+
+export function PreviewIcon({ size = 48, className }: IconProps) {
+  const bg = (
+    <>
+      <defs>
+        <linearGradient id="preview-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#f7f7fa" />
+          <stop offset="100%" stopColor="#d9dae0" />
+        </linearGradient>
+      </defs>
+      <rect width="120" height="120" fill="url(#preview-bg)" />
+    </>
+  );
+  return (
+    <IconShell size={size} className={className} bg={bg}>
+      {/* Document page behind a Preview-style magnifier. */}
+      <path d="M34 20 L70 20 L84 34 L84 92 Q84 97 79 97 L34 97 Q29 97 29 92 L29 25 Q29 20 34 20 Z" fill="#ffffff" stroke="#c3c4cc" strokeWidth="2" />
+      <path d="M70 20 L70 32 Q70 34 72 34 L84 34 Z" fill="#c9cad2" />
+      <line x1="40" y1="48" x2="73" y2="48" stroke="#b3b4bd" strokeWidth="3.5" strokeLinecap="round" />
+      <line x1="40" y1="60" x2="73" y2="60" stroke="#b3b4bd" strokeWidth="3.5" strokeLinecap="round" />
+      <circle cx="66" cy="74" r="17" fill="none" stroke="#0a84ff" strokeWidth="7" />
+      <line x1="78" y1="86" x2="92" y2="100" stroke="#0a84ff" strokeWidth="8" strokeLinecap="round" />
+    </IconShell>
+  );
+}
+
 // Icon map for easy lookup
 export const AppIconMap: Record<string, React.ComponentType<IconProps>> = {
   finder: FinderIcon,
@@ -376,6 +476,10 @@ export const AppIconMap: Record<string, React.ComponentType<IconProps>> = {
   settings: SettingsIcon,
   about: AboutIcon,
   projects: ProjectsIcon,
+  github: GitHubIcon,
+  videos: VideosIcon,
+  basketball: BasketballAppIcon,
+  pdfviewer: PreviewIcon,
   folder: FolderIcon,
   file: FileIcon,
   drive: DriveIcon,
