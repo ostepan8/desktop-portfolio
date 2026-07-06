@@ -1,0 +1,178 @@
+<script src="https://cdn.tailwindcss.com"></script>
+<head>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+	<style>
+		* {
+			box-sizing: border-box;
+			font-family: 'Press Start 2P', cursive;
+		}
+	</style>
+</head>
+
+<div style="position: relative; right: 500; left: 500;" id = "pauseModal">
+	<button style="position: relative; top: 100;" class = "bg-orange-500 text-white py-5 px-10" id = "pauseBack">Back</button>
+
+	<button style = "position: relative; top: 300;" class = "bg-orange-500 text-white py-5 px-10" id = "pauseRestart">Main Menu</button>
+
+	<button style = "position: relative; top: 500;"class = "bg-orange-500 text-white py-5 px-10" id = "pauseOptions">Options <br> (Coming Soon)</button>
+
+</div>
+<button style = "position: absolute; top: 325; left: 625; "class = "bg-blue-500 text-white py-5 px-10" id = "rematchModal">Menu</button>
+<div id = "backgroundModal">
+	<button style="position: absolute; top: 250; right: 100;" class = "bg-purple-500 text-white py-5 px-10" id = "forrestButton">Haunted Forrest</button>
+	<img src='./img/background.png' width="350" style ="position: absolute; right: 85; top: 350;" id = "forrest">
+
+	<button style = "position: absolute; top: 250; left: 550;right: 550;" class = "bg-purple-500 text-white py-5 px-10" id = "yorkButton">Old York</button>
+	<img src='./img/background1.png' width="350" style ="position: absolute; left:  550;top: 350;">
+
+	<button style = "position: absolute; top: 250; left: 100;"class = "bg-purple-500 text-white py-5 px-10" id = "kingdomButton">Ken's Kingdom</button>
+	<img src='./img/background2.png' width="350" style ="position: absolute; left: 65;top: 350;" >
+</div>
+<body></body>
+<img src="./img/controls.png" style="position: absolute; top: 135; right: 190;width: 1024;" id = "control">
+<img src="./img/ken.png" style="position: absolute; top: 135; right: 155;width: 133;" id = "kenCharRight">
+<img src="./img/ryu.png" style="position: absolute; top: 135; right: 115;width: 133;" id = "ryuCharRight">
+<img src="./img/goku.png" style="position: absolute; top: 135; right: 70;width: 275;" id = "gokuCharRight">
+<img src="./img/ken.png" style="position: absolute; top: 135; left: 105;width: 133;" id = "kenCharLeft">
+<img src="./img/ryu.png" style="position: absolute; top: 135; left: 105;width: 133;" id = "ryuCharLeft">
+<img src="./img/goku.png" style="position: absolute; top: 135; left: 50;width: 275;" id = "gokuCharLeft">
+<div>
+	<button style="position: absolute; top: 385; left: 650;" class = "bg-red-500 text-white py-5 px-10 rounded-full" id = "gameStart">Start?</button>
+	<button style="position: absolute; top: 460; left: 660;" class = "bg-red-500 text-white py-5 px-10 rounded-full" id = "backBtn">Back</button>
+</div>
+<button style = "display: inline-block; position: absolute; top: 375; left: 375; color: #4CAF50: padding: 15px 32px;">Hi</button>
+<!-- container div-->
+	<div
+		style="
+			position: relative; 
+			display: inline-block;
+			top: 0; left: 200; top: 112.5; right: 650;
+		"
+		id = 'largeDiv'
+	>
+		<!-- small container div-->
+		<div 
+			style = "
+				position: absolute; 
+				display: flex; 
+				width: 100%; 
+				align-items: center; 
+				padding: 20;
+			"
+			id = 'healthBarModal'
+		>
+			<!-- player health-->
+			<div style = " position: relative; width: 100%; display: flex; justify-content: flex-end; border-top: 4px solid white;  border-left: 4px solid white;  border-bottom: 4px solid white;">
+				<div style ="background-color: red; height: 30px; width: 100%;"
+				></div>	
+				<div 
+					id = "playerHealth"
+					style = "position: absolute; background: #0C4A6E; top: 0; right: 0; bottom: 0;width: 100%;
+					"
+					></div>
+				</div>
+			<!-- timer -->
+			<div
+				id = "timer" 
+				style = "
+					background-color: #374151; 
+					width: 100px; 
+					height: 50px; 
+					flex-shrink: 0;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					color: white;
+					border: 4px solid white;
+				"
+				>
+			</div>
+			<!-- enemy health -->
+			<div style = " position: relative; width: 100%;border-top: 4px solid white;  border-right: 4px solid white;  border-bottom: 4px solid white;">
+				<div 
+					style ="background-color: red; height: 30px;"
+				></div>	
+				<div 
+					id = "enemyHealth"
+					style = "position: absolute; background: #0C4A6E; top: 0; right: 0; bottom: 0; left: 0;
+					"
+					></div>
+				</div>
+			<div></div>
+		</div>
+		<div
+			id = 'displayText'
+			style="
+			position: absolute; 
+			color: white; 
+			align-items: center; 
+			justify-content: center; 
+			top: 0; 
+			right: 0; 
+			bottom: 0; 
+			left: 0;
+			display: none;
+			"
+		>
+			Tie
+		</div>
+		<!-- start screen -->
+		<div class = "absolute" id = 'modalEl'>
+			<div style = "position: relative;top: 360; left: 225; bottom: 0; right: 275; width: 600" class = 'text-center'>
+				<button class = "bg-red-500 text-white w-full py-3 " id = "startGameBtn">Start</button>
+			</div>
+		</div>
+		<!--menu screen-->
+		<div class = "absolute" id = 'menuEl'>
+			<div style = "position: absolute;top: 0; left: 300; bottom: 0; right: 628; width: 600">
+				<div class = "bg-white max-w-md w-full p-5"> 
+					<div class = "p-10">
+						<button class = "bg-red-500 text-white w-full py-5 rounded-full" id = "playWithFriends">Play with Friends </button>
+					</div>
+					<div class = "p-10">
+						<button class = "bg-red-500 text-white w-full py-5 rounded-full" id = "options">Options<br> (Coming Soon)</button>
+					</div>
+					<div class = "p-10">
+						<button class = "bg-red-500 text-white w-full py-5 rounded-full" id = "controlButton">Controls</button>
+					</div>
+					<div class = "p-10">
+						<button class = "bg-red-500 text-white w-full py-5 rounded-full" id = "trainingRoom">Training Room (coming soon)</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--rematch screen-->
+		<div class = "absolute" id = 'rematchEl'>
+			<div style = "position: absolute;top: 185; left: 300; bottom: 0; right: 721; width: 600">
+				<div class = "bg-white max-w-md w-full p-5"> 
+					<div class = "p-10">
+						<button class = "bg-purple-500 text-white w-full py-5 rounded-full" id = "trainingRoom">Rematch?</button>
+					</div>
+				</div>
+			</div>
+		</div>
+<!--character select-->
+		<div class = "absolute" id = 'characterSelect'>
+			<div style = "position: relative;top: 400; left: 0; bottom: 0; right: 0;"> 
+				<div>
+					<p style = "color: white; position: absolute; bottom: 400;left: -175; font-size:50px;" >Player:1</p1>
+				</div>
+				<button class = "bg-red-500 text-white py-5 px-5" id = "ryuSelect" style = "position: absolute;top: 0; left: 925; bottom: 0; right: 100; width: 250; height: 250;">Ryu</button>
+				<div>
+					<p style = "color: white; position: absolute; bottom: 400;left: 785; font-size:50px;" >Player:2</p1>
+				</div>
+				<button class = "bg-red-500 text-white  py-5 px-5" id = "kenSelect" style = "position: absolute;top: 0; left: -150; bottom: 300; right: 900; width: 250; height: 250;">Ken</button>		
+				<button class = "bg-red-500 text-white  py-5 px-5" id = "gokuSelect" style = "position: absolute;top: 0; left: 600; bottom: 300; right: 400; width: 250; height: 250;">Goku</button>		
+			</div>
+		</div>
+<!--character select-->
+		<canvas></canvas>
+	</div> 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js" integrity="sha512-6+YN/9o9BWrk6wSfGxQGpt3EUK6XeHi6yeHV+TYD2GR0Sj/cggRpXr1BrAQf0as6XslxomMUxXp2vIl+fv0QRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js" integrity="sha512-H6cPm97FAsgIKmlBA4s774vqoN24V5gSQL4yBTDOY2su2DeXZVhQPxFK4P6GPdnZqM9fg1G3cMv5wD7e6cFLZQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src = "js/classes.js"></script>
+	<script src = "js/utils.js"></script>
+	<script src = "index.js"></script>
+<!-- sets up^^^->

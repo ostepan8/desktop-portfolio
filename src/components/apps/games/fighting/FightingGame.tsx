@@ -7,8 +7,11 @@ import { cpuInput, createCpuMemory } from "./ai";
 import { drawFight } from "./render";
 import type { FightState, InputFrame } from "./types";
 
-type Screen = "menu" | "fight";
+type Screen = "menu" | "fight" | "original";
 type Mode = "cpu" | "versus";
+
+/** The real 2022 game, vendored as static files (see public/fighting-game-2022). */
+const ORIGINAL_GAME_URL = "/fighting-game-2022/index.html";
 
 const P1_KEYS: Record<string, keyof InputFrame> = {
   KeyA: "left",
@@ -147,8 +150,13 @@ export function FightingGame() {
         stageIndex={stageIndex}
         onStage={setStageIndex}
         onStart={startFight}
+        onPlayOriginal={() => setScreen("original")}
       />
     );
+  }
+
+  if (screen === "original") {
+    return <OriginalGame onBack={() => setScreen("menu")} />;
   }
 
   return (
@@ -187,9 +195,10 @@ interface MainMenuProps {
   stageIndex: number;
   onStage: (i: number) => void;
   onStart: (mode: Mode) => void;
+  onPlayOriginal: () => void;
 }
 
-function MainMenu({ stageIndex, onStage, onStart }: MainMenuProps) {
+function MainMenu({ stageIndex, onStage, onStart, onPlayOriginal }: MainMenuProps) {
   return (
     <div className="h-full overflow-auto bg-gradient-to-b from-[#0d0a1f] to-[#1e1033] flex flex-col items-center justify-center gap-6 p-8 font-mono">
       <div className="text-center">
@@ -198,7 +207,7 @@ function MainMenu({ stageIndex, onStage, onStart }: MainMenuProps) {
         </h1>
         <p className="text-white/50 text-xs mt-2 max-w-sm">
           A from-scratch rebuild of the fighting game I made in 2022 — same
-          spirit, zero borrowed sprites.
+          spirit, zero borrowed sprites. The original is playable below.
         </p>
         <a
           href="https://github.com/ostepan8/Fighting-Game"
@@ -206,7 +215,7 @@ function MainMenu({ stageIndex, onStage, onStart }: MainMenuProps) {
           rel="noopener noreferrer"
           className="inline-block mt-1 text-[11px] text-purple-300 hover:text-purple-200 underline underline-offset-2"
         >
-          see the 2022 original ↗
+          2022 source on GitHub ↗
         </a>
       </div>
 
@@ -265,6 +274,48 @@ function MainMenu({ stageIndex, onStage, onStart }: MainMenuProps) {
         >
           2 PLAYERS
         </button>
+      </div>
+
+      <button
+        onClick={onPlayOriginal}
+        className="px-6 py-2.5 rounded-lg border border-amber-400/50 bg-amber-500/10 hover:bg-amber-500/25 text-amber-300 text-xs font-bold tracking-wider transition-colors"
+      >
+        🕹 PLAY THE 2022 ORIGINAL
+      </button>
+    </div>
+  );
+}
+
+/**
+ * The actual 2022 build, served untouched from public/fighting-game-2022 in
+ * an iframe. It was laid out for a big desktop viewport, so the frame gets a
+ * fixed-size stage inside a scrollable area.
+ */
+function OriginalGame({ onBack }: { onBack: () => void }) {
+  return (
+    <div className="h-full flex flex-col bg-black">
+      <div className="flex items-center gap-3 px-3 py-1.5 bg-[#141414] border-b border-white/10 shrink-0">
+        <button
+          onClick={onBack}
+          className="px-3 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-xs font-mono transition-colors"
+        >
+          ← Back to Rematch!
+        </button>
+        <span className="text-[11px] text-white/40 font-mono truncate">
+          Fighting-Game (2022) — served exactly as I wrote it in high school.
+          Click inside first so it hears the keyboard.
+        </span>
+      </div>
+      <div className="flex-1 overflow-auto">
+        <iframe
+          src={ORIGINAL_GAME_URL}
+          title="Fighting-Game (2022)"
+          // The 2022 layout assumes a ~1500px-wide desktop page; give it that
+          // and let the app window scroll.
+          className="border-0 bg-black"
+          style={{ width: 1500, height: 900 }}
+          allow="autoplay"
+        />
       </div>
     </div>
   );
