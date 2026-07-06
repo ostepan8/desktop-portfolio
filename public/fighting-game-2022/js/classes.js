@@ -1,3 +1,9 @@
+/*
+ * classes.js — sprite and fighter classes.
+ * Sprite handles sheet-based frame animation and drawing to the shared canvas.
+ * Fighter extends Sprite with movement, gravity, attack boxes, health,
+ * and sprite-state switching. Consumed by index.js.
+ */
 class Sprite{
 	constructor({position, imageSrc, scale = 1, scaleX = scale, framesX = 1, framesY = 1, offset = {x:0, y:0}}){
 		this.position = position	
@@ -108,9 +114,7 @@ class Fighter extends Sprite{
 		///attack boxes
 		this.attackBox.position.x = this.position.x + this.attackBox.offset.x
 		this.attackBox.position.y = this.position.y + this.attackBox.offset.y
-		/// attack box
-		//c.fillRect(this.attackBox.position.x, this.attackBox.position.y,this.attackBox.width, this.attackBox.height,)
-		
+
 		this.position.x += this.velocity.x
 		this.position.y += this.velocity.y
 		
@@ -191,10 +195,6 @@ class Fighter extends Sprite{
 	switchSprite(sprite){
 		if(this.image === this.sprites.death.image){
 			if(this.framesCurrentX === this.sprites.death.framesX - 1){
-				this.dead = true
-			}
-			return
-			if(this.framesCurrentX === this.sprites.deathFlipped.framesX - 1){
 				this.dead = true
 			}
 			return

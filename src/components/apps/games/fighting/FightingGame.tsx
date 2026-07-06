@@ -201,13 +201,15 @@ interface MainMenuProps {
 function MainMenu({ stageIndex, onStage, onStart, onPlayOriginal }: MainMenuProps) {
   return (
     <div className="h-full overflow-auto bg-gradient-to-b from-[#0d0a1f] to-[#1e1033] flex flex-col items-center justify-center gap-6 p-8 font-mono">
+      {/* The 2022 game is the headliner. */}
       <div className="text-center">
         <h1 className="text-4xl font-black text-white tracking-widest">
-          REMATCH<span className="text-red-400">!</span>
+          FIGHTING GAME
         </h1>
-        <p className="text-white/50 text-xs mt-2 max-w-sm">
-          A from-scratch rebuild of the fighting game I made in 2022 — same
-          spirit, zero borrowed sprites. The original is playable below.
+        <p className="text-amber-300/90 text-xs mt-2 max-w-sm">
+          The 2D fighter I built in high school — Ryu, Ken, and Goku, three
+          stages, two players on one keyboard. Restored and remastered to fit
+          any screen.
         </p>
         <a
           href="https://github.com/ostepan8/Fighting-Game"
@@ -218,6 +220,25 @@ function MainMenu({ stageIndex, onStage, onStart, onPlayOriginal }: MainMenuProp
           2022 source on GitHub ↗
         </a>
       </div>
+
+      <button
+        onClick={onPlayOriginal}
+        className="px-10 py-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-black text-base font-black tracking-widest transition-colors shadow-lg shadow-amber-500/25"
+      >
+        ▶ PLAY
+      </button>
+
+      <div className="flex items-center gap-3 w-full max-w-sm">
+        <div className="flex-1 h-px bg-white/10" />
+        <span className="text-[10px] uppercase tracking-widest text-white/35">
+          Rematch! — the 2026 rebuild
+        </span>
+        <div className="flex-1 h-px bg-white/10" />
+      </div>
+      <p className="text-white/45 text-[11px] max-w-sm text-center -mt-3">
+        Same spirit, rebuilt from scratch: fixed-timestep engine, hitbox frame
+        data, hand-drawn fighters — zero borrowed sprites.
+      </p>
 
       {/* Fighter cards */}
       <div className="flex items-center gap-4">
@@ -275,21 +296,14 @@ function MainMenu({ stageIndex, onStage, onStart, onPlayOriginal }: MainMenuProp
           2 PLAYERS
         </button>
       </div>
-
-      <button
-        onClick={onPlayOriginal}
-        className="px-6 py-2.5 rounded-lg border border-amber-400/50 bg-amber-500/10 hover:bg-amber-500/25 text-amber-300 text-xs font-bold tracking-wider transition-colors"
-      >
-        🕹 PLAY THE 2022 ORIGINAL
-      </button>
     </div>
   );
 }
 
 /**
- * The actual 2022 build, served untouched from public/fighting-game-2022 in
- * an iframe. It was laid out for a big desktop viewport, so the frame gets a
- * fixed-size stage inside a scrollable area.
+ * The remastered 2022 build, served from public/fighting-game-2022 in an
+ * iframe. The game now renders into a fixed 1024x576 stage that scales
+ * itself to fit whatever size this window is — no scrolling.
  */
 function OriginalGame({ onBack }: { onBack: () => void }) {
   return (
@@ -299,24 +313,18 @@ function OriginalGame({ onBack }: { onBack: () => void }) {
           onClick={onBack}
           className="px-3 py-1 rounded-md bg-white/10 hover:bg-white/20 text-white text-xs font-mono transition-colors"
         >
-          ← Back to Rematch!
+          ← Menu
         </button>
         <span className="text-[11px] text-white/40 font-mono truncate">
-          Fighting-Game (2022) — served exactly as I wrote it in high school.
-          Click inside first so it hears the keyboard.
+          Fighting-Game (2022) — click inside first so it hears the keyboard.
         </span>
       </div>
-      <div className="flex-1 overflow-auto">
-        <iframe
-          src={ORIGINAL_GAME_URL}
-          title="Fighting-Game (2022)"
-          // The 2022 layout assumes a ~1500px-wide desktop page; give it that
-          // and let the app window scroll.
-          className="border-0 bg-black"
-          style={{ width: 1500, height: 900 }}
-          allow="autoplay"
-        />
-      </div>
+      <iframe
+        src={ORIGINAL_GAME_URL}
+        title="Fighting-Game (2022)"
+        className="flex-1 w-full border-0 bg-black"
+        allow="autoplay"
+      />
     </div>
   );
 }

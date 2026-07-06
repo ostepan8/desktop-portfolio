@@ -1,23 +1,28 @@
+/*
+ * index.js — game entry point.
+ * Owns the canvas render loop, fighter definitions, keyboard controls,
+ * menu flow (title -> menu -> character select -> stage select -> fight),
+ * pause handling, and audio cues. Depends on js/classes.js and js/utils.js.
+ */
 const canvas = document.querySelector('canvas');
 const c = canvas.getContext('2d')
 
 canvas.width = 1024
 canvas.height = 576
 
-/// sets up ^^^
 const gravity = .7
 const startGameBtn = document.querySelector('#startGameBtn')
 const modalEl = document.querySelector('#modalEl')
 const healthBarModal = document.querySelector('#healthBarModal')
 const menuEl = document.querySelector('#menuEl')
 const playBtn = document.querySelector('#playWithFriends')
-const rematchBtn = document.querySelector('#rematchEl')
 const characterSelect = document.querySelector('#characterSelect')
 const ryuSelect = document.querySelector('#ryuSelect')
 const kenSelect = document.querySelector('#kenSelect')
 const gokuSelect = document.querySelector('#gokuSelect')
-const controls = document.querySelector('#control')
+const control = document.querySelector('#control')
 const controlButton = document.querySelector('#controlButton')
+const backBtn = document.querySelector('#backBtn')
 const kenCharRight = document.querySelector('#kenCharRight')
 const ryuCharRight = document.querySelector('#ryuCharRight')
 const gokuCharRight = document.querySelector('#gokuCharRight')
@@ -48,12 +53,8 @@ const gameSelectAudio = new Howl({
 	src: './audio/gameSelect.mp3'
 })
 
-var player1 = undefined
-var player2 = undefined
 var playerStartPosition = 100
 var enemyStartPosition = 800
-let playerTurn = true
-let enemyTurn = false
 let timerRunning = true
 
 function createBackground({src}){
@@ -68,8 +69,7 @@ function createBackground({src}){
 }
 
 
-// const player = new Fighter()
-//function callPlayers(){
+// Sprite/attack-box configuration for every playable character, per side.
 const playerDict ={
 		"KenP1": {
 	position:{
@@ -870,11 +870,8 @@ const playerDict ={
 		}
 	}
 }
-	// var player = new Fighter(fighterDict)
-	// var enemy = new Fighter(enemyDict)
 	var player = null
 	var enemy = null
-//callPlayers()
 
 const keys = {
 	a: {
@@ -1015,13 +1012,12 @@ function play(){
 		if (enemy.takingHit){
 			player.isAttacking = false
 		}
-		//player.isAttacking = false
 		gsap.to('#enemyHealth',{
 			width: enemy.health + '%'
 		})
 	}
 	if (
-		rectangularCollision({rectangle1: player, rectangle2: enemy})&& 
+		rectangularCollision({rectangle1: player, rectangle2: enemy})&&
 		player.isAttacking && player.framesCurrentX == 1 && !enemy.blocking && !enemy.takingHit && player.attackBox.width == 50){
 		if (player.position.x <= enemy.position.x) {
 			enemy.takeHitFlipped(5)
@@ -1031,7 +1027,6 @@ function play(){
 		if (enemy.takingHit){
 			player.isAttacking = false
 		}
-		//player.isAttacking = false
 		gsap.to('#enemyHealth',{
 			width: enemy.health + '%'
 		})
@@ -1053,15 +1048,10 @@ function play(){
 		if (enemy.takingHit){
 			player.isAttacking = false
 		}
-		//player.isAttacking = false
 		gsap.to('#enemyHealth',{
 			width: enemy.health + '%'
 		})
 	}
-	/// if player misses
-//	if (player.isAttacking && player.framesCurrentX == 1){
-//		player.isAttacking = false
-//	}
 	/// if player gets hit
 	if (
 		rectangularCollision({rectangle1: enemy, rectangle2: player})&& 
@@ -1070,11 +1060,9 @@ function play(){
 		if (player.takingHit){
 			enemy.isAttacking = false
 		}
-		///enemy.isAttacking = false
 		gsap.to('#playerHealth',{
 			width: player.health + '%'
 		})
-	/// if enemy misses 
 	}
 	if (
 		rectangularCollision({rectangle1: enemy, rectangle2: player})&&
@@ -1087,11 +1075,9 @@ function play(){
 		if (player.takingHit){
 			enemy.isAttacking = false
 		}
-		///enemy.isAttacking = false
 		gsap.to('#playerHealth',{
 			width: player.health + '%'
 		})
-	/// if enemy misses 
 	}
 	if (
 		rectangularCollision({rectangle1: enemy, rectangle2: player})&&
@@ -1104,7 +1090,6 @@ function play(){
 		if (player.takingHit){
 			enemy.isAttacking = false
 		}
-		///enemy.isAttacking = false
 		gsap.to('#playerHealth',{
 			width: player.health + '%'
 		})
@@ -1126,25 +1111,15 @@ function play(){
 		if (player.takingHit){
 			enemy.isAttacking = false
 		}
-		///enemy.isAttacking = false
 		gsap.to('#playerHealth',{
 			width: player.health + '%'
 		})
 	}
-	//if (enemy.isAttacking && enemy.framesCurrentX == 1){
-	//	enemy.isAttacking = false
-	//}
 	// end game
 	if (enemy.health <= 0 || player.health <= 0){
 		determineWinner({player,enemy, timerId})
 	}
 }
-// setInterval(() => {
-//     const myGamepad = navigator.getGamepads()[0]; // use the first gamepad
-//     console.log(`Left stick at (${myGamepad.axes[0]}, ${myGamepad.axes[1]})` );
-//     console.log(`Right stick at (${myGamepad.axes[2]}, ${myGamepad.axes[3]})` );
-//     console.log(myGamepad.axes)
-// }, 100)
 let called
 addEventListener('keydown', (event)=>{
 	called = false
@@ -1411,12 +1386,9 @@ function playGame(players){
 	enemy.position.x = enemyStartPosition
 }
 var timer = 30
-let playerId = 0
 function init(){
 	var player1 = undefined
 	var player2 = undefined
-	var playerStartPosition = 100
-	var enemyStartPosition = 800
 	var playerTurn = true
 	var enemyTurn = false
 	control.style.display ='none'
@@ -1435,9 +1407,7 @@ function init(){
 	canvas.style.display = 'none'
 	healthBarModal.style.display ='none'
 	menuEl.style.display ='none'
-	rematchBtn.style.display = 'none'
 	characterSelect.style.display = 'none'
-	document.body.style.backgroundImage = "url('./img/titleScreen.png')"
 	if(!startGameBtn.getAttribute('listener')){
 		startGameBtn.addEventListener('click', () => {
 			startGameBtn.setAttribute('listener', true)
@@ -1453,10 +1423,8 @@ function init(){
 					vegetaAudio.play()
 				}
 			}
-			document.body.style.backgroundImage = "none"
-			document.body.style.backgroundColor = "black";
 			modalEl.style.display ='none'
-			menuEl.style.display = 'flex'	
+			menuEl.style.display = 'flex'
 			if(!controlButton.getAttribute('listener')){
 				controlButton.addEventListener('click', () => {
 					controlButton.setAttribute('listener', true)
@@ -1652,19 +1620,7 @@ function chooseSides(player1,player2){
 		playGame(["GokuP1", "RyuP2"])	
 	}
 	if(player1 == "Goku" && player2 == "Goku"){
-		playGame(["GokuP1", "GokuP2"])	
+		playGame(["GokuP1", "GokuP2"])
 	}
 }
-// backgroundId = './img/background1.png'
-// 	modalEl.style.display = 'none'
-// 	backgroundModal.style.display ='none'
-// 	kenChar.style.display = 'none'
-// 	ryuChar.style.display = 'none'
-// 	gameStart.style.display = 'none'
-// 	backBtn.style.display = 'none'
-// 	healthBarModal.style.display ='flex'
-// 	menuEl.style.display ='none'
-// 	rematchBtn.style.display = 'none'
-// 	characterSelect.style.display = 'none'
-// play()
 init()
