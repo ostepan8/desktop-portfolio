@@ -1,178 +1,370 @@
-<script src="https://cdn.tailwindcss.com"></script>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Fighting Game</title>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
 	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 	<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 	<style>
+		/* ---------- base ---------- */
 		* {
 			box-sizing: border-box;
+			margin: 0;
+			padding: 0;
 			font-family: 'Press Start 2P', cursive;
+		}
+		html, body {
+			width: 100%;
+			height: 100%;
+			background: #000;
+			overflow: hidden;
+		}
+
+		/* ---------- stage: fixed 1024x576 coordinate system, scaled to fit ---------- */
+		#stage {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			width: 1024px;
+			height: 576px;
+			transform: translate(-50%, -50%);
+			background: #000;
+			overflow: hidden;
+		}
+		#stage canvas {
+			position: absolute;
+			top: 0;
+			left: 0;
+			display: none;
+			image-rendering: pixelated;
+		}
+
+		/* ---------- shared ---------- */
+		.overlay {
+			position: absolute;
+			inset: 0;
+			display: none; /* game code toggles inline display none/flex */
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			z-index: 10;
+		}
+		.btn {
+			display: block;
+			border: 3px solid #000;
+			box-shadow: 4px 4px 0 #000;
+			color: #fff;
+			font-size: 13px;
+			line-height: 1.6;
+			padding: 14px 24px;
+			cursor: pointer;
+			text-align: center;
+		}
+		.btn:hover { filter: brightness(1.15); }
+		.btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 #000; }
+		.btn-red    { background: #dc2626; }
+		.btn-purple { background: #9333ea; }
+		.btn-orange { background: #ea580c; }
+		.btn-blue   { background: #2563eb; }
+		.screen-title {
+			color: #fff;
+			font-size: 24px;
+			text-shadow: 3px 3px 0 #000;
+			margin-bottom: 32px;
+		}
+
+		/* ---------- title screen ---------- */
+		#modalEl {
+			background: url('./img/titleScreen.png') center / cover no-repeat #000;
+			justify-content: flex-end;
+			padding-bottom: 56px;
+		}
+		#startGameBtn { width: 320px; font-size: 16px; }
+
+		/* ---------- main menu ---------- */
+		#menuEl .btn { width: 440px; margin: 10px 0; }
+
+		/* ---------- controls screen ---------- */
+		#control {
+			position: absolute;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+			object-fit: contain;
+			display: none;
+			z-index: 10;
+			background: #000;
+		}
+
+		/* ---------- character select ---------- */
+		#characterSelect { justify-content: center; }
+		.cs-label {
+			position: absolute;
+			top: 28px;
+			color: #fff;
+			font-size: 16px;
+			text-shadow: 2px 2px 0 #000;
+		}
+		.cs-label.p1 { left: 32px; }
+		.cs-label.p2 { right: 32px; }
+		.cs-row { display: flex; gap: 36px; }
+		.cs-btn {
+			width: 180px;
+			height: 210px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 14px;
+			font-size: 14px;
+		}
+		.cs-btn img {
+			height: 120px;
+			max-width: 150px;
+			object-fit: contain;
+			image-rendering: pixelated;
+			pointer-events: none;
+		}
+		.cs-hint {
+			position: absolute;
+			bottom: 160px;
+			color: #fff;
+			font-size: 10px;
+			text-shadow: 2px 2px 0 #000;
+		}
+
+		/* selected-character portraits (shown by game code) */
+		.portrait {
+			position: absolute;
+			top: 74px;
+			height: 170px;
+			width: auto;
+			max-width: 220px;
+			object-fit: contain;
+			image-rendering: pixelated;
+			display: none;
+			z-index: 11;
+		}
+		.portrait.left  { left: 28px; }
+		.portrait.right { right: 28px; }
+
+		/* start / back buttons shared by select + controls screens */
+		#gameStart, #backBtn {
+			position: absolute;
+			left: 50%;
+			transform: translateX(-50%);
+			width: 260px;
+			display: none;
+			z-index: 12;
+		}
+		#gameStart { bottom: 92px; }
+		#backBtn   { bottom: 24px; }
+		#gameStart:active, #backBtn:active {
+			transform: translateX(-50%) translate(2px, 2px);
+			box-shadow: 2px 2px 0 #000;
+		}
+
+		/* ---------- stage (background) select ---------- */
+		.stage-row { display: flex; gap: 28px; }
+		.stage-btn {
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			gap: 12px;
+			padding: 14px;
+			font-size: 11px;
+			width: 300px;
+		}
+		.stage-btn img {
+			width: 100%;
+			height: 148px;
+			object-fit: cover;
+			border: 2px solid #000;
+			pointer-events: none;
+		}
+
+		/* ---------- HUD: health bars + timer ---------- */
+		#healthBarModal {
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			display: none; /* game code toggles inline display none/flex */
+			align-items: center;
+			padding: 20px;
+			z-index: 5;
+		}
+		.health-bar {
+			position: relative;
+			width: 100%;
+			height: 38px;
+			border: 4px solid #fff;
+			background: red;
+		}
+		.health-bar.player-side { border-right: none; }
+		.health-bar.enemy-side  { border-left: none; }
+		#playerHealth {
+			position: absolute;
+			top: 0; right: 0; bottom: 0;
+			width: 100%;
+			background: #0C4A6E;
+		}
+		#enemyHealth {
+			position: absolute;
+			top: 0; left: 0; bottom: 0;
+			width: 100%;
+			background: #0C4A6E;
+		}
+		#timer {
+			width: 100px;
+			height: 50px;
+			flex-shrink: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			color: #fff;
+			border: 4px solid #fff;
+			background: #374151;
+			font-size: 14px;
+			z-index: 6;
+		}
+
+		/* ---------- round result text ---------- */
+		#displayText {
+			position: absolute;
+			inset: 0;
+			display: none; /* game code toggles inline display none/flex */
+			align-items: center;
+			justify-content: center;
+			color: #fff;
+			font-size: 28px;
+			text-align: center;
+			text-shadow: 3px 3px 0 #000;
+			pointer-events: none;
+			z-index: 15;
+		}
+
+		/* ---------- pause menu ---------- */
+		#pauseModal { z-index: 20; }
+		#pauseModal .btn { width: 360px; margin: 10px 0; }
+
+		/* ---------- post-match "Menu" button ---------- */
+		#rematchModal {
+			position: absolute;
+			left: 50%;
+			top: 62%;
+			transform: translateX(-50%);
+			width: 260px;
+			display: none;
+			z-index: 30;
+		}
+		#rematchModal:active {
+			transform: translateX(-50%) translate(2px, 2px);
+			box-shadow: 2px 2px 0 #000;
 		}
 	</style>
 </head>
-
-<div style="position: relative; right: 500; left: 500;" id = "pauseModal">
-	<button style="position: relative; top: 100;" class = "bg-orange-500 text-white py-5 px-10" id = "pauseBack">Back</button>
-
-	<button style = "position: relative; top: 300;" class = "bg-orange-500 text-white py-5 px-10" id = "pauseRestart">Main Menu</button>
-
-	<button style = "position: relative; top: 500;"class = "bg-orange-500 text-white py-5 px-10" id = "pauseOptions">Options <br> (Coming Soon)</button>
-
-</div>
-<button style = "position: absolute; top: 325; left: 625; "class = "bg-blue-500 text-white py-5 px-10" id = "rematchModal">Menu</button>
-<div id = "backgroundModal">
-	<button style="position: absolute; top: 250; right: 100;" class = "bg-purple-500 text-white py-5 px-10" id = "forrestButton">Haunted Forrest</button>
-	<img src='./img/background.png' width="350" style ="position: absolute; right: 85; top: 350;" id = "forrest">
-
-	<button style = "position: absolute; top: 250; left: 550;right: 550;" class = "bg-purple-500 text-white py-5 px-10" id = "yorkButton">Old York</button>
-	<img src='./img/background1.png' width="350" style ="position: absolute; left:  550;top: 350;">
-
-	<button style = "position: absolute; top: 250; left: 100;"class = "bg-purple-500 text-white py-5 px-10" id = "kingdomButton">Ken's Kingdom</button>
-	<img src='./img/background2.png' width="350" style ="position: absolute; left: 65;top: 350;" >
-</div>
-<body></body>
-<img src="./img/controls.png" style="position: absolute; top: 135; right: 190;width: 1024;" id = "control">
-<img src="./img/ken.png" style="position: absolute; top: 135; right: 155;width: 133;" id = "kenCharRight">
-<img src="./img/ryu.png" style="position: absolute; top: 135; right: 115;width: 133;" id = "ryuCharRight">
-<img src="./img/goku.png" style="position: absolute; top: 135; right: 70;width: 275;" id = "gokuCharRight">
-<img src="./img/ken.png" style="position: absolute; top: 135; left: 105;width: 133;" id = "kenCharLeft">
-<img src="./img/ryu.png" style="position: absolute; top: 135; left: 105;width: 133;" id = "ryuCharLeft">
-<img src="./img/goku.png" style="position: absolute; top: 135; left: 50;width: 275;" id = "gokuCharLeft">
-<div>
-	<button style="position: absolute; top: 385; left: 650;" class = "bg-red-500 text-white py-5 px-10 rounded-full" id = "gameStart">Start?</button>
-	<button style="position: absolute; top: 460; left: 660;" class = "bg-red-500 text-white py-5 px-10 rounded-full" id = "backBtn">Back</button>
-</div>
-<button style = "display: inline-block; position: absolute; top: 375; left: 375; color: #4CAF50: padding: 15px 32px;">Hi</button>
-<!-- container div-->
-	<div
-		style="
-			position: relative; 
-			display: inline-block;
-			top: 0; left: 200; top: 112.5; right: 650;
-		"
-		id = 'largeDiv'
-	>
-		<!-- small container div-->
-		<div 
-			style = "
-				position: absolute; 
-				display: flex; 
-				width: 100%; 
-				align-items: center; 
-				padding: 20;
-			"
-			id = 'healthBarModal'
-		>
-			<!-- player health-->
-			<div style = " position: relative; width: 100%; display: flex; justify-content: flex-end; border-top: 4px solid white;  border-left: 4px solid white;  border-bottom: 4px solid white;">
-				<div style ="background-color: red; height: 30px; width: 100%;"
-				></div>	
-				<div 
-					id = "playerHealth"
-					style = "position: absolute; background: #0C4A6E; top: 0; right: 0; bottom: 0;width: 100%;
-					"
-					></div>
-				</div>
-			<!-- timer -->
-			<div
-				id = "timer" 
-				style = "
-					background-color: #374151; 
-					width: 100px; 
-					height: 50px; 
-					flex-shrink: 0;
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					color: white;
-					border: 4px solid white;
-				"
-				>
-			</div>
-			<!-- enemy health -->
-			<div style = " position: relative; width: 100%;border-top: 4px solid white;  border-right: 4px solid white;  border-bottom: 4px solid white;">
-				<div 
-					style ="background-color: red; height: 30px;"
-				></div>	
-				<div 
-					id = "enemyHealth"
-					style = "position: absolute; background: #0C4A6E; top: 0; right: 0; bottom: 0; left: 0;
-					"
-					></div>
-				</div>
-			<div></div>
-		</div>
-		<div
-			id = 'displayText'
-			style="
-			position: absolute; 
-			color: white; 
-			align-items: center; 
-			justify-content: center; 
-			top: 0; 
-			right: 0; 
-			bottom: 0; 
-			left: 0;
-			display: none;
-			"
-		>
-			Tie
-		</div>
-		<!-- start screen -->
-		<div class = "absolute" id = 'modalEl'>
-			<div style = "position: relative;top: 360; left: 225; bottom: 0; right: 275; width: 600" class = 'text-center'>
-				<button class = "bg-red-500 text-white w-full py-3 " id = "startGameBtn">Start</button>
-			</div>
-		</div>
-		<!--menu screen-->
-		<div class = "absolute" id = 'menuEl'>
-			<div style = "position: absolute;top: 0; left: 300; bottom: 0; right: 628; width: 600">
-				<div class = "bg-white max-w-md w-full p-5"> 
-					<div class = "p-10">
-						<button class = "bg-red-500 text-white w-full py-5 rounded-full" id = "playWithFriends">Play with Friends </button>
-					</div>
-					<div class = "p-10">
-						<button class = "bg-red-500 text-white w-full py-5 rounded-full" id = "options">Options<br> (Coming Soon)</button>
-					</div>
-					<div class = "p-10">
-						<button class = "bg-red-500 text-white w-full py-5 rounded-full" id = "controlButton">Controls</button>
-					</div>
-					<div class = "p-10">
-						<button class = "bg-red-500 text-white w-full py-5 rounded-full" id = "trainingRoom">Training Room (coming soon)</button>
-					</div>
-				</div>
-			</div>
-		</div>
-		<!--rematch screen-->
-		<div class = "absolute" id = 'rematchEl'>
-			<div style = "position: absolute;top: 185; left: 300; bottom: 0; right: 721; width: 600">
-				<div class = "bg-white max-w-md w-full p-5"> 
-					<div class = "p-10">
-						<button class = "bg-purple-500 text-white w-full py-5 rounded-full" id = "trainingRoom">Rematch?</button>
-					</div>
-				</div>
-			</div>
-		</div>
-<!--character select-->
-		<div class = "absolute" id = 'characterSelect'>
-			<div style = "position: relative;top: 400; left: 0; bottom: 0; right: 0;"> 
-				<div>
-					<p style = "color: white; position: absolute; bottom: 400;left: -175; font-size:50px;" >Player:1</p1>
-				</div>
-				<button class = "bg-red-500 text-white py-5 px-5" id = "ryuSelect" style = "position: absolute;top: 0; left: 925; bottom: 0; right: 100; width: 250; height: 250;">Ryu</button>
-				<div>
-					<p style = "color: white; position: absolute; bottom: 400;left: 785; font-size:50px;" >Player:2</p1>
-				</div>
-				<button class = "bg-red-500 text-white  py-5 px-5" id = "kenSelect" style = "position: absolute;top: 0; left: -150; bottom: 300; right: 900; width: 250; height: 250;">Ken</button>		
-				<button class = "bg-red-500 text-white  py-5 px-5" id = "gokuSelect" style = "position: absolute;top: 0; left: 600; bottom: 300; right: 400; width: 250; height: 250;">Goku</button>		
-			</div>
-		</div>
-<!--character select-->
+<body>
+	<div id="stage">
+		<!-- gameplay layer -->
 		<canvas></canvas>
-	</div> 
+
+		<!-- HUD -->
+		<div id="healthBarModal">
+			<div class="health-bar player-side">
+				<div id="playerHealth"></div>
+			</div>
+			<div id="timer"></div>
+			<div class="health-bar enemy-side">
+				<div id="enemyHealth"></div>
+			</div>
+		</div>
+		<div id="displayText">Tie</div>
+
+		<!-- title screen -->
+		<div class="overlay" id="modalEl">
+			<button class="btn btn-red" id="startGameBtn">Start</button>
+		</div>
+
+		<!-- main menu -->
+		<div class="overlay" id="menuEl">
+			<h2 class="screen-title">Main Menu</h2>
+			<button class="btn btn-red" id="playWithFriends">Play with Friends</button>
+			<button class="btn btn-red" id="options">Options<br>(Coming Soon)</button>
+			<button class="btn btn-red" id="controlButton">Controls</button>
+			<button class="btn btn-red" id="trainingRoom">Training Room<br>(Coming Soon)</button>
+		</div>
+
+		<!-- controls screen -->
+		<img src="./img/controls.png" alt="Controls" id="control">
+
+		<!-- character select -->
+		<div class="overlay" id="characterSelect">
+			<p class="cs-label p1">Player 1</p>
+			<p class="cs-label p2">Player 2</p>
+			<h2 class="screen-title">Choose Your Fighter</h2>
+			<div class="cs-row">
+				<button class="btn btn-red cs-btn" id="kenSelect"><img src="./img/ken.png" alt="Ken">Ken</button>
+				<button class="btn btn-red cs-btn" id="gokuSelect"><img src="./img/goku.png" alt="Goku">Goku</button>
+				<button class="btn btn-red cs-btn" id="ryuSelect"><img src="./img/ryu.png" alt="Ryu">Ryu</button>
+			</div>
+			<p class="cs-hint">Player 1 picks first, then Player 2</p>
+		</div>
+
+		<!-- selected-character portraits -->
+		<img src="./img/ken.png"  alt="" class="portrait left"  id="kenCharLeft">
+		<img src="./img/ryu.png"  alt="" class="portrait left"  id="ryuCharLeft">
+		<img src="./img/goku.png" alt="" class="portrait left"  id="gokuCharLeft">
+		<img src="./img/ken.png"  alt="" class="portrait right" id="kenCharRight">
+		<img src="./img/ryu.png"  alt="" class="portrait right" id="ryuCharRight">
+		<img src="./img/goku.png" alt="" class="portrait right" id="gokuCharRight">
+
+		<!-- confirm / back (character select + controls screens) -->
+		<button class="btn btn-red" id="gameStart">Start?</button>
+		<button class="btn btn-red" id="backBtn">Back</button>
+
+		<!-- stage select -->
+		<div class="overlay" id="backgroundModal">
+			<h2 class="screen-title">Select Stage</h2>
+			<div class="stage-row">
+				<button class="btn btn-purple stage-btn" id="kingdomButton"><img src="./img/background2.png" alt="">Ken's Kingdom</button>
+				<button class="btn btn-purple stage-btn" id="yorkButton"><img src="./img/background1.png" alt="">Old York</button>
+				<button class="btn btn-purple stage-btn" id="forrestButton"><img src="./img/background.png" alt="">Haunted Forrest</button>
+			</div>
+		</div>
+
+		<!-- pause menu -->
+		<div class="overlay" id="pauseModal">
+			<h2 class="screen-title">Paused</h2>
+			<button class="btn btn-orange" id="pauseBack">Back</button>
+			<button class="btn btn-orange" id="pauseRestart">Main Menu</button>
+			<button class="btn btn-orange" id="pauseOptions">Options<br>(Coming Soon)</button>
+		</div>
+
+		<!-- post-match return-to-menu button -->
+		<button class="btn btn-blue" id="rematchModal">Menu</button>
+	</div>
+
+	<script>
+		// Scale the fixed 1024x576 stage to fit the viewport (letterboxed, centered).
+		(function () {
+			var STAGE_W = 1024;
+			var STAGE_H = 576;
+			var stage = document.getElementById('stage');
+			function fitStage() {
+				var scale = Math.min(window.innerWidth / STAGE_W, window.innerHeight / STAGE_H);
+				stage.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+			}
+			window.addEventListener('resize', fitStage);
+			fitStage();
+		})();
+	</script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.3/howler.min.js" integrity="sha512-6+YN/9o9BWrk6wSfGxQGpt3EUK6XeHi6yeHV+TYD2GR0Sj/cggRpXr1BrAQf0as6XslxomMUxXp2vIl+fv0QRA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js" integrity="sha512-H6cPm97FAsgIKmlBA4s774vqoN24V5gSQL4yBTDOY2su2DeXZVhQPxFK4P6GPdnZqM9fg1G3cMv5wD7e6cFLZQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-	<script src = "js/classes.js"></script>
-	<script src = "js/utils.js"></script>
-	<script src = "index.js"></script>
-<!-- sets up^^^->
+	<script src="js/classes.js"></script>
+	<script src="js/utils.js"></script>
+	<script src="index.js"></script>
+</body>
+</html>

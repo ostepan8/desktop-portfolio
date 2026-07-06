@@ -77,7 +77,7 @@ const DESKTOP_ICON_TARGETS: Record<
   resume: { appId: "pdfviewer", title: "Resume.pdf" },
   basketball: { appId: "basketball", title: "Basketball" },
   videos: { appId: "videos", title: "Videos" },
-  rematch: { appId: "rematch", title: "Rematch!" },
+  rematch: { appId: "rematch", title: "Fighting Game" },
   arbhunter: { appId: "arbhunter", title: "Arb Hunter" },
   readme: { appId: "textedit", title: "README.txt", arg: "readme" },
 };

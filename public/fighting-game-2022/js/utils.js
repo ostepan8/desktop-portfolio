@@ -1,6 +1,9 @@
+/*
+ * utils.js — shared helpers for index.js.
+ * Attack-box collision detection, round timer countdown, winner
+ * determination, and the post-match rematch/menu flow.
+ */
 function rectangularCollision({rectangle1, rectangle2}) {
-	//c.fillRect(rectangle1.position.x, rectangle1.position.y,rectangle1.width, rectangle1.height,)
-	//c.fillRect(rectangle2.position.x, rectangle2.position.y,rectangle2.width, rectangle2.height,)
 	return(
 		rectangle1.attackBox.position.x + rectangle1.attackBox.width >= rectangle2.position.x && 
 		rectangle1.attackBox.position.x <= rectangle2.position.x + rectangle2.width &&

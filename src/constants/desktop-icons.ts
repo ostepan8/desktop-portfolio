@@ -16,7 +16,7 @@ export const DEFAULT_DESKTOP_ICONS: DesktopIconData[] = [
   { id: "resume", label: "Resume.pdf", icon: "📋", type: "file" },
   { id: "basketball", label: "Basketball", icon: "🏀", type: "app", appId: "basketball" },
   { id: "videos", label: "Videos", icon: "🎬", type: "app", appId: "videos" },
-  { id: "rematch", label: "Rematch!", icon: "🥊", type: "app", appId: "rematch" },
+  { id: "rematch", label: "Fighting Game", icon: "🥊", type: "app", appId: "rematch" },
   { id: "arbhunter", label: "Arb Hunter", icon: "📈", type: "app", appId: "arbhunter" },
   { id: "readme", label: "README.txt", icon: "📄", type: "file" },
 ];

@@ -203,11 +203,12 @@ export const APPS: Record<AppId, AppDefinition> = {
   },
   rematch: {
     id: "rematch",
-    label: "Rematch!",
+    label: "Fighting Game",
     Icon: RematchIcon,
-    subtitle: "2D fighter — homage to my 2022 game",
-    defaultWidth: 900,
-    defaultHeight: 580,
+    subtitle: "My 2022 fighter, remastered — plus the 2026 rebuild",
+    // 16:9 stage + top bar: sized so the 1024x576 game scales cleanly.
+    defaultWidth: 1000,
+    defaultHeight: 640,
     minWidth: 560,
     minHeight: 400,
     inDock: true,
