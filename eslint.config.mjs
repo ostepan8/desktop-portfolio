@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Vendored static assets (e.g. the 2022 Fighting-Game) served verbatim.
+    "public/**",
   ]),
 ]);
 
