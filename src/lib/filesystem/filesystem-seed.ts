@@ -3,7 +3,7 @@ import { BASKETBALL, PROFILE } from "@/constants/profile";
 
 // v4: bumped when the seed content changes so returning visitors whose
 // localStorage holds the old snapshot pick up the new files.
-export const STORAGE_KEY = "desktop-portfolio-fs-v6";
+export const STORAGE_KEY = "desktop-portfolio-fs-v7";
 
 /**
  * Seed data used when localStorage is empty. Root nodes appear in Finder's
@@ -87,7 +87,7 @@ Things to try:
 - Open Projects to browse my GitHub live
 - Watch my senior-year mixtape in the Basketball app
 - Open Videos for demos of things I've shipped
-- Play my high school Fighting Game — remastered, plus a 2026 rebuilt engine
+- Play my high school Fighting Game — remastered to run right on this desktop
 - Beat the books in Arb Hunter
 - Type 'neofetch' in the Terminal
 
