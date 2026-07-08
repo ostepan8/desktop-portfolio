@@ -7,6 +7,8 @@ interface StatusIconProps {
   children: ReactNode;
   title?: string;
   subtitle?: string;
+  /** Makes the icon an actionable button (e.g. Spotlight opens search). */
+  onClick?: () => void;
 }
 
 /**
@@ -14,7 +16,7 @@ interface StatusIconProps {
  * hover tooltip below itself. The tooltip text is two lines: a short title
  * and an optional subtitle.
  */
-export function StatusIcon({ children, title, subtitle }: StatusIconProps) {
+export function StatusIcon({ children, title, subtitle, onClick }: StatusIconProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -22,6 +24,8 @@ export function StatusIcon({ children, title, subtitle }: StatusIconProps) {
       className="relative px-1.5 py-0.5 rounded hover:bg-white/10 cursor-default transition-colors flex items-center justify-center"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
     >
       {children}
       {title && (

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Toggle } from "@/components/ui/Toggle";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import { useSystemStatus } from "@/lib/system-status";
 import { Z_INDEX, MENU_BAR_HEIGHT } from "@/constants/layout";
 import { slideInRightVariants } from "@/constants/motion";
 
@@ -52,7 +53,9 @@ interface NotificationCenterProps {
 export function NotificationCenter({ isOpen, onClose }: NotificationCenterProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const [notifications, setNotifications] = useState(SAMPLE_NOTIFICATIONS);
-  const [doNotDisturb, setDoNotDisturb] = useState(false);
+  // Shared with the Control Center "Focus" tile — toggling one updates both.
+  const { focusMode: doNotDisturb, setFocusMode: setDoNotDisturb } =
+    useSystemStatus();
 
   useClickOutside(panelRef, onClose, isOpen);
 

@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { VIDEOS, type VideoEntry } from "@/constants/videos";
+import { useSounds } from "@/lib/sounds";
+import { useNowPlaying } from "@/lib/now-playing";
 
 interface VideoPlayerProps {
   /** id of the video to start on; defaults to the first in the playlist. */
@@ -31,6 +33,11 @@ function groupByCategory(
 /**
  * QuickTime-style video player: category-grouped playlist sidebar + native
  * <video> element. Content comes from src/constants/videos.ts.
+ *
+ * Integrated with the system: playback volume/mute follows the global sound
+ * state (Control Center, Settings, menu bar) and changes made through the
+ * native controls propagate back out. The current video is published to the
+ * Control Center Now Playing tile, which can play/pause/skip it.
  */
 export function VideoPlayer({ initialVideoId }: VideoPlayerProps) {
   const initial = useMemo(
@@ -40,6 +47,71 @@ export function VideoPlayer({ initialVideoId }: VideoPlayerProps) {
   const groups = useMemo(() => groupByCategory(VIDEOS), []);
   const [current, setCurrent] = useState<VideoEntry | null>(initial);
   const [playbackError, setPlaybackError] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const { volume, isMuted, setVolume, setMuted } = useSounds();
+  const { setTrack, setControls } = useNowPlaying();
+
+  const selectVideo = useCallback((video: VideoEntry) => {
+    setPlaybackError(false);
+    setCurrent(video);
+  }, []);
+
+  // Global sound state → video element. Runs again when the element remounts
+  // for a new video (keyed by current.id).
+  useEffect(() => {
+    const el = videoRef.current;
+    if (!el) return;
+    el.volume = volume;
+    el.muted = isMuted;
+  }, [volume, isMuted, current]);
+
+  // Video element → global sound state, so unmuting through the native
+  // controls unmutes the whole system. Value guards prevent echo loops with
+  // the effect above.
+  const handleVolumeChange = () => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (el.muted !== isMuted) setMuted(el.muted);
+    if (Math.abs(el.volume - volume) > 0.01) setVolume(el.volume);
+  };
+
+  // Publish the current video to the Now Playing tile.
+  useEffect(() => {
+    if (!current) {
+      setTrack(null);
+      return;
+    }
+    setTrack({ title: current.title, subtitle: "Videos", isPlaying });
+  }, [current, isPlaying, setTrack]);
+
+  // Register transport controls for the Now Playing tile.
+  const selectNext = useCallback(() => {
+    setPlaybackError(false);
+    setCurrent((prev) => {
+      if (!prev) return VIDEOS[0] ?? null;
+      const index = VIDEOS.findIndex((v) => v.id === prev.id);
+      return VIDEOS[(index + 1) % VIDEOS.length] ?? prev;
+    });
+  }, []);
+
+  useEffect(() => {
+    setControls({
+      toggle: () => {
+        const el = videoRef.current;
+        if (!el) return;
+        if (el.paused) void el.play();
+        else el.pause();
+      },
+      next: selectNext,
+    });
+    // Deregister from Control Center when the window closes.
+    return () => {
+      setControls(null);
+      setTrack(null);
+    };
+  }, [setControls, setTrack, selectNext]);
 
   if (VIDEOS.length === 0) {
     return (
@@ -52,11 +124,6 @@ export function VideoPlayer({ initialVideoId }: VideoPlayerProps) {
       </div>
     );
   }
-
-  const selectVideo = (video: VideoEntry) => {
-    setPlaybackError(false);
-    setCurrent(video);
-  };
 
   return (
     <div className="h-full flex flex-col sm:flex-row bg-black">
@@ -100,6 +167,7 @@ export function VideoPlayer({ initialVideoId }: VideoPlayerProps) {
         {current && !playbackError ? (
           <>
             <video
+              ref={videoRef}
               key={current.id}
               src={current.src}
               controls
@@ -107,6 +175,10 @@ export function VideoPlayer({ initialVideoId }: VideoPlayerProps) {
               playsInline
               className="flex-1 min-h-0 w-full object-contain bg-black"
               onError={() => setPlaybackError(true)}
+              onPlay={() => setIsPlaying(true)}
+              onPause={() => setIsPlaying(false)}
+              onEnded={() => setIsPlaying(false)}
+              onVolumeChange={handleVolumeChange}
             />
             <div className="px-4 py-2 bg-[var(--macos-bg)] border-t border-white/10">
               <p className="text-sm text-white/90 font-medium">{current.title}</p>
