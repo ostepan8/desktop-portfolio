@@ -10,20 +10,24 @@ import {
   DesktopIcons,
   DesktopProvider,
   Spotlight,
+  SystemOverlay,
   WALLPAPERS,
   useDesktop,
   type ContextMenuItem,
   type DesktopIconData,
+  type SystemPowerState,
   type WallpaperKey,
 } from "@/components/desktop";
 import { Dock, type DockItemData } from "@/components/dock";
-import { MenuBar } from "@/components/menubar";
+import { MenuBar, type MenuActions } from "@/components/menubar";
 import {
   WindowManagerProvider,
   useWindowManager,
 } from "@/components/window";
 import { FileSystemProvider } from "@/lib/filesystem";
 import { SoundProvider, useSounds } from "@/lib/sounds";
+import { SystemStatusProvider } from "@/lib/system-status";
+import { NowPlayingProvider } from "@/lib/now-playing";
 import {
   APPS,
   DOCK_APPS,
@@ -36,33 +40,33 @@ export default function Home() {
 
   return (
     <SoundProvider>
-      <FileSystemProvider>
-        <DesktopProvider>
-          <WindowManagerProvider>
-            {!isBooted && <BootSequence onComplete={() => setIsBooted(true)} />}
-            <DesktopShell />
-          </WindowManagerProvider>
-        </DesktopProvider>
-      </FileSystemProvider>
+      <SystemStatusProvider>
+        <NowPlayingProvider>
+          <FileSystemProvider>
+            <DesktopProvider>
+              <WindowManagerProvider>
+                {!isBooted && (
+                  <BootSequence onComplete={() => setIsBooted(true)} />
+                )}
+                <DesktopShell onReboot={() => setIsBooted(false)} />
+              </WindowManagerProvider>
+            </DesktopProvider>
+          </FileSystemProvider>
+        </NowPlayingProvider>
+      </SystemStatusProvider>
     </SoundProvider>
   );
 }
 
-function DesktopShell() {
-  const { playWindowOpen, isMuted, setMuted } = useSounds();
-  return (
-    <DesktopContent
-      onWindowOpen={playWindowOpen}
-      isMuted={isMuted}
-      onToggleMute={() => setMuted(!isMuted)}
-    />
-  );
+function DesktopShell({ onReboot }: { onReboot: () => void }) {
+  const { playWindowOpen } = useSounds();
+  return <DesktopContent onWindowOpen={playWindowOpen} onReboot={onReboot} />;
 }
 
 interface DesktopContentProps {
   onWindowOpen?: () => void;
-  isMuted?: boolean;
-  onToggleMute?: () => void;
+  /** Replay the boot sequence (Apple menu Restart / power-on after Shut Down). */
+  onReboot: () => void;
 }
 
 /** Map of desktop icon id → which app to open with what initial argument. */
@@ -82,11 +86,7 @@ const DESKTOP_ICON_TARGETS: Record<
   readme: { appId: "textedit", title: "README.txt", arg: "readme" },
 };
 
-function DesktopContent({
-  onWindowOpen,
-  isMuted,
-  onToggleMute,
-}: DesktopContentProps) {
+function DesktopContent({ onWindowOpen, onReboot }: DesktopContentProps) {
   const {
     windows,
     activeWindowId,
@@ -101,6 +101,7 @@ function DesktopContent({
   const [activeApp, setActiveApp] = useState("Finder");
   const [showAboutDialog, setShowAboutDialog] = useState(false);
   const [showSpotlight, setShowSpotlight] = useState(false);
+  const [powerState, setPowerState] = useState<SystemPowerState>("on");
   const [contextMenu, setContextMenu] = useState<{
     x: number;
     y: number;
@@ -208,6 +209,59 @@ function DesktopContent({
     [openAppWindow],
   );
 
+  const closeAllWindows = useCallback(() => {
+    windows.forEach((w) => closeWindow(w.id));
+  }, [windows, closeWindow]);
+
+  // Apple menu power actions. Sleep blanks the screen until a click/keypress;
+  // Restart replays the boot sequence; Shut Down powers "off" until the user
+  // presses the on-screen power button.
+  const handleSleep = useCallback(() => setPowerState("sleeping"), []);
+  const handleRestart = useCallback(() => {
+    closeAllWindows();
+    onReboot();
+  }, [closeAllWindows, onReboot]);
+  const handleShutDown = useCallback(() => {
+    closeAllWindows();
+    setPowerState("off");
+  }, [closeAllWindows]);
+  const handleWake = useCallback(() => {
+    const wasOff = powerState === "off";
+    setPowerState("on");
+    if (wasOff) onReboot();
+  }, [powerState, onReboot]);
+
+  // "New Window" opens another window of whichever app is frontmost
+  // (Finder when nothing is focused). Passing null as the initial argument
+  // forces a fresh window instead of refocusing the existing one.
+  const handleNewWindow = useCallback(() => {
+    const frontmostAppId =
+      (windows.find((w) => w.id === activeWindowId)?.appId as AppId | undefined) ??
+      "finder";
+    openAppWindow(frontmostAppId, undefined, null);
+  }, [windows, activeWindowId, openAppWindow]);
+
+  const menuActions: MenuActions = {
+    onAbout: () => setShowAboutDialog(true),
+    onOpenApp: openAppWindow,
+    onOpenFinderAt: (title, folderId) =>
+      openAppWindow("finder", title, folderId),
+    onNewWindow: handleNewWindow,
+    onCloseWindow: activeWindowId
+      ? () => closeWindow(activeWindowId)
+      : undefined,
+    onMinimizeWindow: activeWindowId
+      ? () => minimizeWindow(activeWindowId)
+      : undefined,
+    onMinimizeAll: () => windows.forEach((w) => minimizeWindow(w.id)),
+    onBringAllToFront: () => windows.forEach((w) => focusWindow(w.id)),
+    onFocusWindow: focusWindow,
+    onSpotlight: () => setShowSpotlight(true),
+    onSleep: handleSleep,
+    onRestart: handleRestart,
+    onShutDown: handleShutDown,
+  };
+
   const hideContextMenu = useCallback(() => setContextMenu(null), []);
 
   const handleDesktopContextMenu = useCallback(
@@ -282,14 +336,9 @@ function DesktopContent({
     <>
       <MenuBar
         activeApp={activeApp}
-        isMuted={isMuted}
-        onToggleMute={onToggleMute}
         windows={windows.map((w) => ({ id: w.id, title: w.title, appId: w.appId }))}
         activeWindowId={activeWindowId}
-        onFocusWindow={focusWindow}
-        onMinimizeAll={() => windows.forEach((w) => minimizeWindow(w.id))}
-        onCloseWindow={activeWindowId ? () => closeWindow(activeWindowId) : undefined}
-        onAbout={() => setShowAboutDialog(true)}
+        actions={menuActions}
       />
 
       <AboutThisMac
@@ -328,6 +377,12 @@ function DesktopContent({
             items={contextMenu.items}
             onClose={hideContextMenu}
           />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {powerState !== "on" && (
+          <SystemOverlay state={powerState} onWake={handleWake} />
         )}
       </AnimatePresence>
     </>

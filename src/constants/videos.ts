@@ -2,6 +2,10 @@
  * Playlist for the Videos app. Files live in /public/videos. To add a video,
  * drop the .mp4 in public/videos and add an entry here — the player groups
  * the playlist by `category` in the order entries appear.
+ *
+ * Ordering is deliberate: Subconscious work leads (it's the professional
+ * showcase and supplies the default video), explainers follow, basketball
+ * closes the list.
  */
 export interface VideoEntry {
   readonly id: string;
@@ -14,15 +18,6 @@ export interface VideoEntry {
 }
 
 export const VIDEOS: readonly VideoEntry[] = [
-  // ── Basketball ──────────────────────────────────────────────────────
-  {
-    id: "hoops-mixtape",
-    title: "Owen's Parker Mixtape",
-    description: "Senior season mixtape — #0 for the Francis W. Parker Colonels varsity.",
-    src: "/videos/hoops-mixtape.mp4",
-    category: "Basketball",
-    duration: "5:14",
-  },
   // ── Subconscious demos ──────────────────────────────────────────────
   {
     id: "subconscious-promo",
@@ -152,5 +147,14 @@ export const VIDEOS: readonly VideoEntry[] = [
     src: "/videos/local-compute.mp4",
     category: "Explainers",
     duration: "0:56",
+  },
+  // ── Basketball ──────────────────────────────────────────────────────
+  {
+    id: "hoops-mixtape",
+    title: "Owen's Parker Mixtape",
+    description: "Senior season mixtape — #0 for the Francis W. Parker Colonels varsity.",
+    src: "/videos/hoops-mixtape.mp4",
+    category: "Basketball",
+    duration: "5:14",
   },
 ];

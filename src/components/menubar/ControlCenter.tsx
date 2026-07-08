@@ -1,10 +1,13 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { useClickOutside } from "@/hooks/useClickOutside";
 import { usePointerDrag } from "@/hooks/usePointerDrag";
+import { useSounds } from "@/lib/sounds";
+import { useSystemStatus } from "@/lib/system-status";
+import { useNowPlaying } from "@/lib/now-playing";
 import { panelPopVariants } from "@/constants/motion";
 import { Z_INDEX } from "@/constants/layout";
 import {
@@ -14,6 +17,7 @@ import {
   ForwardIcon,
   MoonIcon,
   MusicNoteIcon,
+  PauseIcon,
   PlayIcon,
   SpeakerIcon,
   SunIcon,
@@ -25,36 +29,43 @@ import {
 interface ControlCenterProps {
   isOpen: boolean;
   onClose: () => void;
-  isMuted?: boolean;
-  onToggleMute?: () => void;
 }
 
 /**
- * macOS Control Center dropdown — Wi-Fi/Bluetooth/AirDrop/Focus tiles, brightness
- * and volume sliders, and a Now Playing tile. Local UI state (brightness, wifi,
- * etc.) is purely cosmetic; only volume actually wires through to the global
- * mute toggle.
+ * macOS Control Center dropdown. Everything here is wired to real state:
+ * volume drives the global sound system (including <video> playback), the
+ * brightness slider dims the screen, Wi-Fi cuts Safari off from the network,
+ * Focus syncs with Notification Center, and Now Playing mirrors and controls
+ * the active video.
  */
-export function ControlCenter({
-  isOpen,
-  onClose,
-  isMuted,
-  onToggleMute,
-}: ControlCenterProps) {
-  const [brightness, setBrightness] = useState(80);
-  const [volume, setVolume] = useState(isMuted ? 0 : 70);
-  const [wifi, setWifi] = useState(true);
-  const [bluetooth, setBluetooth] = useState(true);
-  const [airdrop, setAirdrop] = useState(false);
-  const [doNotDisturb, setDoNotDisturb] = useState(false);
+export function ControlCenter({ isOpen, onClose }: ControlCenterProps) {
+  const { isMuted, volume, setMuted, setVolume } = useSounds();
+  const {
+    wifi,
+    bluetooth,
+    airdrop,
+    focusMode,
+    brightness,
+    setWifi,
+    setBluetooth,
+    setAirdrop,
+    setFocusMode,
+    setBrightness,
+  } = useSystemStatus();
   const panelRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(panelRef, onClose, isOpen);
 
+  // Slider works in 0–100; the sound system stores 0–1. Dragging to zero
+  // mutes, dragging back up unmutes — same as the hardware volume keys.
+  const volumePercent = isMuted ? 0 : Math.round(volume * 100);
   const handleVolumeChange = (next: number) => {
-    setVolume(next);
-    if (next === 0 && !isMuted) onToggleMute?.();
-    else if (next > 0 && isMuted) onToggleMute?.();
+    if (next === 0) {
+      if (!isMuted) setMuted(true);
+      return;
+    }
+    if (isMuted) setMuted(false);
+    setVolume(next / 100);
   };
 
   return (
@@ -98,9 +109,9 @@ export function ControlCenter({
               <ControlTile
                 icon={<MoonIcon />}
                 label="Focus"
-                sublabel={doNotDisturb ? "On" : "Off"}
-                isActive={doNotDisturb}
-                onClick={() => setDoNotDisturb(!doNotDisturb)}
+                sublabel={focusMode ? "On" : "Off"}
+                isActive={focusMode}
+                onClick={() => setFocusMode(!focusMode)}
               />
             </div>
 
@@ -119,37 +130,68 @@ export function ControlCenter({
                   <span className="text-xs font-medium text-white/90">Sound</span>
                 </div>
                 <Slider
-                  value={volume}
+                  value={volumePercent}
                   onChange={handleVolumeChange}
-                  icon={volume === 0 ? <VolumeOffSmallIcon /> : <VolumeOnSmallIcon />}
+                  icon={volumePercent === 0 ? <VolumeOffSmallIcon /> : <VolumeOnSmallIcon />}
                 />
               </SurfaceTile>
             </div>
 
-            {/* Now Playing — cosmetic placeholder. */}
             <div className="px-3 pb-3">
-              <SurfaceTile className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-orange-400 flex items-center justify-center">
-                  <MusicNoteIcon />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-white truncate">Not Playing</div>
-                  <div className="text-xs text-white/50">Music</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button className="p-1 text-white/50 hover:text-white/90 transition-colors">
-                    <PlayIcon />
-                  </button>
-                  <button className="p-1 text-white/50 hover:text-white/90 transition-colors">
-                    <ForwardIcon />
-                  </button>
-                </div>
-              </SurfaceTile>
+              <NowPlayingTile />
             </div>
           </GlassPanel>
         </motion.div>
       )}
     </AnimatePresence>
+  );
+}
+
+/** Mirrors whatever the Videos app is playing and drives its transport. */
+function NowPlayingTile() {
+  const { track, controls } = useNowPlaying();
+  const hasTrack = track !== null;
+
+  return (
+    <SurfaceTile className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-pink-500 to-orange-400 flex items-center justify-center">
+        <MusicNoteIcon />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-medium text-white truncate">
+          {track?.title ?? "Not Playing"}
+        </div>
+        <div className="text-xs text-white/50">{track?.subtitle ?? "Videos"}</div>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => controls?.toggle()}
+          disabled={!hasTrack}
+          aria-label={track?.isPlaying ? "Pause" : "Play"}
+          className={
+            "p-1 transition-colors " +
+            (hasTrack
+              ? "text-white/70 hover:text-white"
+              : "text-white/25 cursor-default")
+          }
+        >
+          {track?.isPlaying ? <PauseIcon /> : <PlayIcon />}
+        </button>
+        <button
+          onClick={() => controls?.next()}
+          disabled={!hasTrack}
+          aria-label="Next"
+          className={
+            "p-1 transition-colors " +
+            (hasTrack
+              ? "text-white/70 hover:text-white"
+              : "text-white/25 cursor-default")
+          }
+        >
+          <ForwardIcon />
+        </button>
+      </div>
+    </SurfaceTile>
   );
 }
 

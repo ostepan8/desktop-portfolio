@@ -9,8 +9,10 @@ import {
 } from "@/constants/safari-bookmarks";
 import { SafariToolbar } from "./safari/SafariToolbar";
 import { SafariStartPage } from "./safari/SafariStartPage";
+import { useSystemStatus } from "@/lib/system-status";
 
 export function Safari() {
+  const { wifi } = useSystemStatus();
   const [inputUrl, setInputUrl] = useState("");
   const [currentUrl, setCurrentUrl] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -43,6 +45,17 @@ export function Safari() {
       return;
     }
 
+    // Wi-Fi is toggleable from Control Center — while it's off, Safari is
+    // genuinely offline.
+    if (!wifi) {
+      setCurrentUrl(normalizedUrl);
+      setIsLoading(false);
+      setError(
+        "You are not connected to the internet. Turn on Wi-Fi in Control Center to browse.",
+      );
+      return;
+    }
+
     setIsLoading(true);
     setCurrentUrl(normalizedUrl);
 
@@ -51,7 +64,7 @@ export function Safari() {
     newHistory.push(normalizedUrl);
     setHistory(newHistory);
     setHistoryIndex(newHistory.length - 1);
-  }, [history, historyIndex]);
+  }, [history, historyIndex, wifi]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,16 +211,19 @@ export function Safari() {
                 </div>
               )}
 
-              {/* Iframe */}
-              <iframe
-                ref={iframeRef}
-                src={currentUrl}
-                className="w-full h-full border-0 bg-white"
-                onLoad={handleIframeLoad}
-                onError={handleIframeError}
-                sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
-                title="Safari Browser"
-              />
+              {/* Iframe — unmounted while an error page is shown so an
+                  offline navigation never actually hits the network. */}
+              {!error && (
+                <iframe
+                  ref={iframeRef}
+                  src={currentUrl}
+                  className="w-full h-full border-0 bg-white"
+                  onLoad={handleIframeLoad}
+                  onError={handleIframeError}
+                  sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                  title="Safari Browser"
+                />
+              )}
             </motion.div>
           ) : (
             <motion.div

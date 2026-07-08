@@ -28,6 +28,8 @@ export const WINDOW_DEFAULTS = {
  *   spotlight               → 150
  *   context menu            → 200
  *   modal dialog            → 300
+ *   brightness dim overlay  → 380
+ *   sleep / shutdown screen → 400
  *   skip-link / a11y        → 9999
  */
 export const Z_INDEX = {
@@ -40,6 +42,8 @@ export const Z_INDEX = {
   spotlight: 150,
   contextMenu: 200,
   modal: 300,
+  brightnessOverlay: 380,
+  systemOverlay: 400,
   skipLink: 9999,
 } as const;
 

@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { useDesktop, WALLPAPERS, type WallpaperKey } from "@/components/desktop";
+import {
+  useDesktop,
+  WALLPAPERS,
+  ACCENT_COLORS,
+  type WallpaperKey,
+  type AccentKey,
+} from "@/components/desktop";
 import { useSounds } from "@/lib/sounds";
 import { Toggle } from "@/components/ui/Toggle";
 import { SidebarItem } from "@/components/ui/SidebarItem";
@@ -99,8 +105,9 @@ function GeneralSettings() {
 }
 
 function DesktopSettings() {
-  const { wallpaper, setWallpaper } = useDesktop();
+  const { wallpaper, setWallpaper, accent, setAccent } = useDesktop();
   const wallpaperKeys = Object.keys(WALLPAPERS) as WallpaperKey[];
+  const accentKeys = Object.keys(ACCENT_COLORS) as AccentKey[];
 
   return (
     <div className="space-y-6">
@@ -139,22 +146,34 @@ function DesktopSettings() {
 
       <SettingsSection title="Accent Color">
         <div className="flex gap-2">
-          {[
-            { color: "#0a84ff", name: "Blue" },
-            { color: "#30d158", name: "Green" },
-            { color: "#ff9f0a", name: "Orange" },
-            { color: "#ff375f", name: "Pink" },
-            { color: "#bf5af2", name: "Purple" },
-          ].map((accent) => (
-            <button
-              key={accent.name}
-              className="w-8 h-8 rounded-full border-2 border-white/20 hover:border-white/50 transition-colors"
-              style={{ backgroundColor: accent.color }}
-              title={accent.name}
-            />
-          ))}
+          {accentKeys.map((key) => {
+            const isActive = accent === key;
+            return (
+              <button
+                key={key}
+                onClick={() => setAccent(key)}
+                className={
+                  "w-8 h-8 rounded-full border-2 transition-all flex items-center justify-center " +
+                  (isActive
+                    ? "border-white ring-2 ring-white/30 scale-110"
+                    : "border-white/20 hover:border-white/50")
+                }
+                style={{ backgroundColor: ACCENT_COLORS[key].bright }}
+                title={ACCENT_COLORS[key].name}
+                aria-pressed={isActive}
+              >
+                {isActive && (
+                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
         </div>
-        <p className="text-xs text-white/40 mt-2">Accent color customization coming soon</p>
+        <p className="text-xs text-white/40 mt-2">
+          Changes buttons, highlights, and selection color across the system.
+        </p>
       </SettingsSection>
     </div>
   );

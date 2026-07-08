@@ -3,6 +3,8 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useClickOutside } from "@/hooks/useClickOutside";
+import { useSounds } from "@/lib/sounds";
+import { useSystemStatus } from "@/lib/system-status";
 import { Z_INDEX } from "@/constants/layout";
 import { NotificationCenter } from "./NotificationCenter";
 import { ControlCenter } from "./ControlCenter";
@@ -10,6 +12,7 @@ import { MenuBarItem, MenuDropdown } from "./MenuDropdown";
 import { StatusIcon } from "./StatusIcon";
 import {
   MENU_BAR_MENUS,
+  type MenuActions,
   type MenuContext,
   type MenuBarMenu,
 } from "./menu-definitions";
@@ -31,28 +34,20 @@ interface WindowInfo {
 
 interface MenuBarProps {
   activeApp?: string;
-  isMuted?: boolean;
-  onToggleMute?: () => void;
   windows?: WindowInfo[];
   activeWindowId?: string | null;
-  onFocusWindow?: (id: string) => void;
-  onMinimizeAll?: () => void;
-  onCloseWindow?: () => void;
-  onAbout?: () => void;
+  /** Handlers for every wired menu item. Missing ones render disabled. */
+  actions?: MenuActions;
 }
 
 export function MenuBar({
   activeApp = "Finder",
-  isMuted = true,
-  onToggleMute,
   windows = [],
   activeWindowId,
-  onFocusWindow,
-  onMinimizeAll,
-  onCloseWindow,
-  onAbout,
+  actions = {},
 }: MenuBarProps) {
   const isMobile = useIsMobile();
+  const { wifi } = useSystemStatus();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [showControlCenter, setShowControlCenter] = useState(false);
   const [showNotificationCenter, setShowNotificationCenter] = useState(false);
@@ -71,24 +66,13 @@ export function MenuBar({
   );
 
   const menuContext: MenuContext = {
-    onAbout,
-    onCloseWindow,
-    onMinimizeAll,
-    onFocusWindow,
+    ...actions,
     activeWindowId,
     windows,
   };
 
   if (isMobile) {
-    return (
-      <MobileMenuBar
-        ref={menuRef}
-        activeApp={activeApp}
-        isMuted={isMuted}
-        onToggleMute={onToggleMute}
-        time={time}
-      />
-    );
+    return <MobileMenuBar ref={menuRef} activeApp={activeApp} time={time} />;
   }
 
   return (
@@ -122,15 +106,21 @@ export function MenuBar({
       </div>
 
       <div className="flex items-center gap-0.5">
-        <VolumeButton isMuted={isMuted} onToggle={onToggleMute} />
+        <VolumeButton />
 
         <StatusIcon title="Battery" subtitle="100% - Charged">
           <BatteryIcon />
         </StatusIcon>
-        <StatusIcon title="Wi-Fi" subtitle="Home Network">
-          <WifiIcon />
+        <StatusIcon title="Wi-Fi" subtitle={wifi ? "Home Network" : "Off"}>
+          <span className={wifi ? "" : "opacity-40"}>
+            <WifiIcon />
+          </span>
         </StatusIcon>
-        <StatusIcon title="Spotlight" subtitle="⌘ Space">
+        <StatusIcon
+          title="Spotlight"
+          subtitle="⌘ Space"
+          onClick={actions.onSpotlight}
+        >
           <SearchIcon />
         </StatusIcon>
 
@@ -148,8 +138,6 @@ export function MenuBar({
           <ControlCenter
             isOpen={showControlCenter}
             onClose={() => setShowControlCenter(false)}
-            isMuted={isMuted}
-            onToggleMute={onToggleMute}
           />
         </div>
 
@@ -223,16 +211,12 @@ function AppLabel({
   );
 }
 
-function VolumeButton({
-  isMuted,
-  onToggle,
-}: {
-  isMuted?: boolean;
-  onToggle?: () => void;
-}) {
+/** Menu bar speaker icon — click toggles the global mute. */
+function VolumeButton() {
+  const { isMuted, setMuted } = useSounds();
   return (
     <button
-      onClick={onToggle}
+      onClick={() => setMuted(!isMuted)}
       className="px-1.5 py-0.5 rounded hover:bg-white/10 cursor-default transition-colors"
       title={isMuted ? "Sound: Off" : "Sound: On"}
     >
@@ -246,37 +230,36 @@ function VolumeButton({
 const MobileMenuBar = ({
   ref,
   activeApp,
-  isMuted,
-  onToggleMute,
   time,
 }: {
   ref: React.RefObject<HTMLDivElement | null>;
   activeApp: string;
-  isMuted?: boolean;
-  onToggleMute?: () => void;
   time: string;
-}) => (
-  <header
-    ref={ref}
-    className="h-7 bg-[var(--macos-menubar)] glass flex items-center justify-between px-3 text-[13px] font-medium select-none"
-    style={{ zIndex: Z_INDEX.menuBar }}
-  >
-    <div className="flex items-center gap-2">
-      <AppleLogo />
-      <span className="font-semibold text-white/90">{activeApp}</span>
-    </div>
+}) => {
+  const { isMuted, setMuted } = useSounds();
+  return (
+    <header
+      ref={ref}
+      className="h-7 bg-[var(--macos-menubar)] glass flex items-center justify-between px-3 text-[13px] font-medium select-none"
+      style={{ zIndex: Z_INDEX.menuBar }}
+    >
+      <div className="flex items-center gap-2">
+        <AppleLogo />
+        <span className="font-semibold text-white/90">{activeApp}</span>
+      </div>
 
-    <div className="flex items-center gap-2">
-      <button
-        onClick={onToggleMute}
-        className="p-1 rounded active:bg-white/20 text-sm"
-      >
-        {isMuted ? "🔇" : "🔊"}
-      </button>
-      <span className="text-white/90 text-xs tabular-nums">{time}</span>
-    </div>
-  </header>
-);
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => setMuted(!isMuted)}
+          className="p-1 rounded active:bg-white/20 text-sm"
+        >
+          {isMuted ? "🔇" : "🔊"}
+        </button>
+        <span className="text-white/90 text-xs tabular-nums">{time}</span>
+      </div>
+    </header>
+  );
+};
 
 /** Update the formatted time string once a second. Mobile uses a shorter
  *  format (just HH:MM) since the menu bar has less room there. */
