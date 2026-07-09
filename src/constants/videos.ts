@@ -3,9 +3,8 @@
  * drop the .mp4 in public/videos and add an entry here — the player groups
  * the playlist by `category` in the order entries appear.
  *
- * Ordering is deliberate: Subconscious work leads (it's the professional
- * showcase and supplies the default video), explainers follow, basketball
- * closes the list.
+ * Ordering is deliberate: the Explainers lead (they supply the default
+ * video), Subconscious demos follow, basketball closes the list.
  */
 export interface VideoEntry {
   readonly id: string;
@@ -18,6 +17,39 @@ export interface VideoEntry {
 }
 
 export const VIDEOS: readonly VideoEntry[] = [
+  // ── Explainers ──────────────────────────────────────────────────────
+  {
+    id: "agent-roi",
+    title: "The ROI of AI Agents",
+    description: "Motion-graphics explainer on when agents actually pay for themselves.",
+    src: "/videos/agent-roi.mp4",
+    category: "Explainers",
+    duration: "0:50",
+  },
+  {
+    id: "coding-agents",
+    title: "Coding Agents",
+    description: "How autonomous coding agents plan, implement, and ship.",
+    src: "/videos/coding-agents.mp4",
+    category: "Explainers",
+    duration: "1:20",
+  },
+  {
+    id: "gpu-fleet",
+    title: "GPU Fleet",
+    description: "Animated breakdown of running inference across a GPU fleet.",
+    src: "/videos/gpu-fleet.mp4",
+    category: "Explainers",
+    duration: "1:37",
+  },
+  {
+    id: "local-compute",
+    title: "Local Compute",
+    description: "Why on-device inference is having a moment — animated breakdown.",
+    src: "/videos/local-compute.mp4",
+    category: "Explainers",
+    duration: "0:56",
+  },
   // ── Subconscious demos ──────────────────────────────────────────────
   {
     id: "subconscious-promo",
@@ -114,39 +146,6 @@ export const VIDEOS: readonly VideoEntry[] = [
     src: "/videos/elevenlabs-demo.mp4",
     category: "Subconscious",
     duration: "0:30",
-  },
-  // ── Explainers ──────────────────────────────────────────────────────
-  {
-    id: "agent-roi",
-    title: "The ROI of AI Agents",
-    description: "Motion-graphics explainer on when agents actually pay for themselves.",
-    src: "/videos/agent-roi.mp4",
-    category: "Explainers",
-    duration: "0:50",
-  },
-  {
-    id: "coding-agents",
-    title: "Coding Agents",
-    description: "How autonomous coding agents plan, implement, and ship.",
-    src: "/videos/coding-agents.mp4",
-    category: "Explainers",
-    duration: "1:20",
-  },
-  {
-    id: "gpu-fleet",
-    title: "GPU Fleet",
-    description: "Animated breakdown of running inference across a GPU fleet.",
-    src: "/videos/gpu-fleet.mp4",
-    category: "Explainers",
-    duration: "1:37",
-  },
-  {
-    id: "local-compute",
-    title: "Local Compute",
-    description: "Why on-device inference is having a moment — animated breakdown.",
-    src: "/videos/local-compute.mp4",
-    category: "Explainers",
-    duration: "0:56",
   },
   // ── Basketball ──────────────────────────────────────────────────────
   {
