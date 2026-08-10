@@ -145,26 +145,15 @@ function DesktopContent({ onWindowOpen, onReboot }: DesktopContentProps) {
       }
 
       const title = customTitle ?? app.label;
-      const screenWidth =
-        typeof window !== "undefined" ? window.innerWidth : 1200;
-      const screenHeight =
-        typeof window !== "undefined" ? window.innerHeight : 800;
-      const centerX =
-        (screenWidth - app.defaultWidth) / 2 + (Math.random() - 0.5) * 60;
-      const centerY =
-        (screenHeight - app.defaultHeight) / 2 -
-        40 +
-        (Math.random() - 0.5) * 40;
 
+      // Size and placement are the window manager's job: it fits the app's
+      // preferred size to the desktop and cascades the position.
       openWindow({
         id: `${appId}-${Date.now()}`,
         appId,
         title,
-        icon: undefined,
-        x: Math.max(50, centerX),
-        y: Math.max(40, centerY),
-        width: app.defaultWidth,
-        height: app.defaultHeight,
+        preferredWidth: app.defaultWidth,
+        preferredHeight: app.defaultHeight,
         minWidth: app.minWidth,
         minHeight: app.minHeight,
         component: app.render({ initialArg, openApp: launchApp }),

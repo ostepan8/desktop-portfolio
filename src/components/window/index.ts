@@ -1,2 +1,7 @@
 export { Window, type WindowProps } from "./Window";
-export { WindowManagerProvider, useWindowManager, type WindowState } from "./WindowManager";
+export {
+  WindowManagerProvider,
+  useWindowManager,
+  type WindowState,
+  type OpenWindowRequest,
+} from "./WindowManager";
