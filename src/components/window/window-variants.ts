@@ -1,50 +1,50 @@
 import type { Variants } from "framer-motion";
 
 /**
- * Build the desktop-window animation variants. The "minimizing" variant
- * needs the live window position so it can compute a translation that lands
- * at the dock (bottom-center of the screen).
+ * Desktop-window animation variants.
  *
- * Returned as a plain function (not a hook) — callers should still memoize
- * around `windowPosition.x|y` to avoid re-creating variants every render.
+ * These are transform-only (scale/opacity/translate) and deliberately static —
+ * position and size are driven by `style`, never by Motion. An earlier version
+ * rebuilt this object from the live window position, which re-triggered the
+ * open spring on every frame of a drag or resize.
+ *
+ * The minimize target is passed per-window through Motion's `custom` prop, so
+ * the object identity here stays stable for the life of the app.
  */
-export function buildWindowVariants(windowPosition: { x: number; y: number }): Variants {
-  const screenWidth =
-    typeof window !== "undefined" ? window.innerWidth : 1200;
-  const screenHeight =
-    typeof window !== "undefined" ? window.innerHeight : 800;
-  const dockTargetX = screenWidth / 2 - windowPosition.x;
-  const dockTargetY = screenHeight - 60 - windowPosition.y;
-
-  return {
-    hidden: { scale: 0.92, opacity: 0, y: 8 },
-    visible: {
-      scale: 1,
-      opacity: 1,
-      y: 0,
-      x: 0,
-      transition: {
-        type: "spring" as const,
-        stiffness: 400,
-        damping: 30,
-        mass: 0.8,
-      },
-    },
-    minimizing: {
-      scale: 0.15,
-      opacity: 0,
-      x: dockTargetX,
-      y: dockTargetY,
-      transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] as const },
-    },
-    exit: {
-      scale: 0.95,
-      opacity: 0,
-      y: 4,
-      transition: { duration: 0.15, ease: [0.4, 0, 1, 1] as const },
-    },
-  };
+export interface MinimizeTarget {
+  /** Translation from the window's own origin to the dock, in pixels. */
+  x: number;
+  y: number;
 }
+
+export const windowVariants: Variants = {
+  hidden: { opacity: 0, scale: 0.94, y: 8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    x: 0,
+    y: 0,
+    transition: {
+      type: "spring" as const,
+      stiffness: 420,
+      damping: 32,
+      mass: 0.7,
+    },
+  },
+  minimizing: (target: MinimizeTarget) => ({
+    opacity: 0,
+    scale: 0.12,
+    x: target.x,
+    y: target.y,
+    transition: { duration: 0.36, ease: [0.4, 0, 0.2, 1] as const },
+  }),
+  exit: {
+    opacity: 0,
+    scale: 0.96,
+    y: 4,
+    transition: { duration: 0.14, ease: [0.4, 0, 1, 1] as const },
+  },
+};
 
 /** Mobile windows open as full-screen sheets that slide up from the bottom. */
 export const mobileWindowVariants: Variants = {

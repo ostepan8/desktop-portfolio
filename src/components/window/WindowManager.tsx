@@ -1,7 +1,13 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useEffect, useRef, ReactNode } from "react";
 import { AnimatePresence } from "framer-motion";
+import { WINDOW_DEFAULTS } from "@/constants/layout";
+import {
+  getViewportSize,
+  placeNewWindow,
+  type Rect,
+} from "@/lib/window-geometry";
 import { Window } from "./Window";
 
 export interface WindowState {
@@ -9,21 +15,36 @@ export interface WindowState {
   appId: string;
   title: string;
   icon?: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  minWidth?: number;
-  minHeight?: number;
+  /** Placement resolved at open time — see {@link placeNewWindow}. */
+  rect: Rect;
+  minWidth: number;
+  minHeight: number;
   isMinimized: boolean;
   isMinimizing: boolean;
+  component: ReactNode;
+}
+
+/**
+ * What a caller asks for when opening a window. Size is a *preference*: the
+ * manager shrinks it to fit the current desktop and picks the position, so no
+ * app can open larger than the screen or land underneath the dock.
+ */
+export interface OpenWindowRequest {
+  id: string;
+  appId: string;
+  title: string;
+  icon?: string;
+  preferredWidth: number;
+  preferredHeight: number;
+  minWidth?: number;
+  minHeight?: number;
   component: ReactNode;
 }
 
 interface WindowManagerContextType {
   windows: WindowState[];
   activeWindowId: string | null;
-  openWindow: (config: Omit<WindowState, "isMinimized" | "isMinimizing">) => void;
+  openWindow: (request: OpenWindowRequest) => void;
   closeWindow: (id: string) => void;
   closeWindowsByApp: (appId: string) => void;
   minimizeWindow: (id: string) => void;
@@ -50,19 +71,44 @@ export function WindowManagerProvider({ children }: WindowManagerProviderProps) 
   const [activeWindowId, setActiveWindowId] = useState<string | null>(null);
   const [windowOrder, setWindowOrder] = useState<string[]>([]);
 
-  const openWindow = useCallback((config: Omit<WindowState, "isMinimized" | "isMinimizing">) => {
+  // Cascade counter for auto-placement. Reset once the desktop is empty so a
+  // fresh run of windows starts from the centre again instead of drifting.
+  const cascadeIndexRef = useRef(0);
+
+  const openWindow = useCallback((request: OpenWindowRequest) => {
+    const minWidth = request.minWidth ?? WINDOW_DEFAULTS.MIN_WIDTH;
+    const minHeight = request.minHeight ?? WINDOW_DEFAULTS.MIN_HEIGHT;
+    const rect = placeNewWindow(
+      cascadeIndexRef.current,
+      { width: request.preferredWidth, height: request.preferredHeight },
+      { width: minWidth, height: minHeight },
+      getViewportSize(),
+    );
+    cascadeIndexRef.current += 1;
+
     const newWindow: WindowState = {
-      ...config,
+      id: request.id,
+      appId: request.appId,
+      title: request.title,
+      icon: request.icon,
+      component: request.component,
+      rect,
+      minWidth,
+      minHeight,
       isMinimized: false,
       isMinimizing: false,
     };
     setWindows((prev) => [...prev, newWindow]);
-    setWindowOrder((prev) => [...prev, config.id]);
-    setActiveWindowId(config.id);
+    setWindowOrder((prev) => [...prev, request.id]);
+    setActiveWindowId(request.id);
   }, []);
 
   const closeWindow = useCallback((id: string) => {
-    setWindows((prev) => prev.filter((w) => w.id !== id));
+    setWindows((prev) => {
+      const next = prev.filter((w) => w.id !== id);
+      if (next.length === 0) cascadeIndexRef.current = 0;
+      return next;
+    });
     setWindowOrder((prev) => prev.filter((wId) => wId !== id));
     if (activeWindowId === id) {
       const remaining = windowOrder.filter((wId) => wId !== id);
@@ -72,7 +118,11 @@ export function WindowManagerProvider({ children }: WindowManagerProviderProps) 
 
   const closeWindowsByApp = useCallback((appId: string) => {
     const windowsToClose = windows.filter((w) => w.appId === appId).map((w) => w.id);
-    setWindows((prev) => prev.filter((w) => w.appId !== appId));
+    setWindows((prev) => {
+      const next = prev.filter((w) => w.appId !== appId);
+      if (next.length === 0) cascadeIndexRef.current = 0;
+      return next;
+    });
     setWindowOrder((prev) => prev.filter((wId) => !windowsToClose.includes(wId)));
     if (activeWindowId && windowsToClose.includes(activeWindowId)) {
       const remaining = windowOrder.filter((wId) => !windowsToClose.includes(wId));
@@ -180,10 +230,7 @@ export function WindowManagerProvider({ children }: WindowManagerProviderProps) 
                     appId={w.appId}
                     title={w.title}
                     icon={w.icon}
-                    initialX={w.x}
-                    initialY={w.y}
-                    initialWidth={w.width}
-                    initialHeight={w.height}
+                    initialRect={w.rect}
                     minWidth={w.minWidth}
                     minHeight={w.minHeight}
                     isActive={activeWindowId === w.id}

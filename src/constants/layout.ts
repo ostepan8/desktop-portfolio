@@ -11,8 +11,20 @@ export const GRID_SIZE = 90;
 export const WINDOW_DEFAULTS = {
   MIN_WIDTH: 400,
   MIN_HEIGHT: 300,
-  SNAP_THRESHOLD: 20,
-  TITLE_BAR_HEIGHT: 28,
+  /** Pointer distance from a screen edge that arms an edge snap. */
+  SNAP_THRESHOLD: 24,
+  /** Height of the window title bar (`h-10`). */
+  TITLE_BAR_HEIGHT: 40,
+  /** Gap kept between an auto-placed window and the edge of the work area. */
+  SPAWN_MARGIN: 28,
+  /** Diagonal offset between successive auto-placed windows. */
+  CASCADE_STEP: 30,
+  /** Maximum number of distinct cascade slots before the sequence repeats. */
+  CASCADE_SLOTS: 6,
+  /** Window edge that always stays on screen while dragging past an edge. */
+  EDGE_GRIP: 96,
+  /** Duration of maximize / snap / restore geometry transitions, in ms. */
+  TRANSITION_MS: 220,
 } as const;
 
 /**

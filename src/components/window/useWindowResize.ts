@@ -1,101 +1,92 @@
 "use client";
 
-import { useCallback } from "react";
-import type { MouseEvent as ReactMouseEvent, RefObject } from "react";
-import type { ResizeDirection } from "./ResizeHandle";
-
-interface Position {
-  x: number;
-  y: number;
-}
-
-interface Size {
-  width: number;
-  height: number;
-}
+import { useCallback, useRef } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
+import { usePointerDrag } from "@/hooks/usePointerDrag";
+import { lockPointer, RESIZE_CURSORS } from "@/lib/pointer-lock";
+import {
+  resizeRect,
+  type Rect,
+  type ResizeDirection,
+  type Size,
+} from "@/lib/window-geometry";
 
 interface UseWindowResizeArgs {
-  position: Position;
-  size: Size;
-  minWidth: number;
-  minHeight: number;
-  onChange: (next: { position: Position; size: Size }) => void;
-  /** Reference flipped to true while a resize is in flight — used by the
-   *  parent to suppress drag handlers on the title bar. */
-  isResizingRef: RefObject<boolean>;
+  /** Reads the window's live geometry at the moment the handle is grabbed. */
+  liveRect: () => Rect;
+  min: Size;
+  workArea: Rect;
+  /** Paint a frame without a React render. */
+  onPreview: (rect: Rect) => void;
+  /** Commit the final geometry on release. */
+  onCommit: (rect: Rect) => void;
+}
+
+interface ResizeSession {
+  start: Rect;
+  direction: ResizeDirection;
+  release: () => void;
 }
 
 /**
- * Returns a `startResize` callback that wires a single direction handle (e.g.
- * "ne", "s") to mousemove tracking. Window position adjusts when resizing
- * from the north or west edges so the opposite corner stays put.
+ * Wires the eight edge/corner handles to a pointer drag.
+ *
+ * Every frame is written straight to the DOM, so resizing a window never
+ * re-renders its contents — the previous mousemove-to-setState loop re-rendered
+ * (and re-ran the open animation) on every single pointer move.
  */
 export function useWindowResize({
-  position,
-  size,
-  minWidth,
-  minHeight,
-  onChange,
-  isResizingRef,
+  liveRect,
+  min,
+  workArea,
+  onPreview,
+  onCommit,
 }: UseWindowResizeArgs) {
-  return useCallback(
-    (e: ReactMouseEvent, direction: ResizeDirection) => {
-      e.preventDefault();
-      e.stopPropagation();
-      isResizingRef.current = true;
+  const sessionRef = useRef<ResizeSession | null>(null);
+  const latestRef = useRef<Rect | null>(null);
 
-      const startX = e.clientX;
-      const startY = e.clientY;
-      const startWidth = size.width;
-      const startHeight = size.height;
-      const startPosX = position.x;
-      const startPosY = position.y;
+  const endSession = useCallback(() => {
+    const session = sessionRef.current;
+    if (!session) return;
+    session.release();
+    sessionRef.current = null;
+    if (latestRef.current) onCommit(latestRef.current);
+    latestRef.current = null;
+  }, [onCommit]);
 
-      const onMove = (ev: MouseEvent) => {
-        const deltaX = ev.clientX - startX;
-        const deltaY = ev.clientY - startY;
-
-        let newWidth = startWidth;
-        let newHeight = startHeight;
-        let newX = startPosX;
-        let newY = startPosY;
-
-        if (direction.includes("e")) {
-          newWidth = Math.max(minWidth, startWidth + deltaX);
-        }
-        if (direction.includes("w")) {
-          const possibleWidth = startWidth - deltaX;
-          if (possibleWidth >= minWidth) {
-            newWidth = possibleWidth;
-            newX = startPosX + deltaX;
-          }
-        }
-        if (direction.includes("s")) {
-          newHeight = Math.max(minHeight, startHeight + deltaY);
-        }
-        if (direction.includes("n")) {
-          const possibleHeight = startHeight - deltaY;
-          if (possibleHeight >= minHeight) {
-            newHeight = possibleHeight;
-            newY = startPosY + deltaY;
-          }
-        }
-
-        onChange({
-          position: { x: newX, y: newY },
-          size: { width: newWidth, height: newHeight },
-        });
-      };
-
-      const onEnd = () => {
-        isResizingRef.current = false;
-        document.removeEventListener("mousemove", onMove);
-        document.removeEventListener("mouseup", onEnd);
-      };
-
-      document.addEventListener("mousemove", onMove);
-      document.addEventListener("mouseup", onEnd);
+  const startDrag = usePointerDrag({
+    onMove: (state) => {
+      const session = sessionRef.current;
+      if (!session) return;
+      const next = resizeRect(
+        session.start,
+        session.direction,
+        { x: state.deltaX, y: state.deltaY },
+        min,
+        workArea,
+      );
+      latestRef.current = next;
+      onPreview(next);
     },
-    [position, size, minWidth, minHeight, onChange, isResizingRef],
+    onEnd: endSession,
+  });
+
+  return useCallback(
+    (event: ReactPointerEvent, direction: ResizeDirection) => {
+      // Only the primary button resizes, and the gesture must not also start a
+      // title-bar drag or a focus-stealing selection.
+      if (event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+
+      sessionRef.current = {
+        start: liveRect(),
+        direction,
+        release: lockPointer(RESIZE_CURSORS[direction]),
+      };
+      latestRef.current = null;
+      startDrag(event);
+    },
+    [liveRect, startDrag],
   );
 }
