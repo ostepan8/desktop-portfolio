@@ -192,10 +192,33 @@ describe("detectSnapZone", () => {
     expect(detectSnapZone({ x: 700, y: 400 }, LAPTOP)).toBeNull();
   });
 
-  it("arms edges from the pointer, not from the window size", () => {
+  it("arms tiling only with the pointer hard against a screen edge", () => {
     expect(detectSnapZone({ x: 2, y: 400 }, LAPTOP)).toBe("left");
-    expect(detectSnapZone({ x: LAPTOP.width - 2, y: 400 }, LAPTOP)).toBe("right");
+    expect(detectSnapZone({ x: LAPTOP.width - 2, y: 400 }, LAPTOP)).toBe(
+      "right",
+    );
+  });
+
+  it("does not hijack a drop that is merely near an edge", () => {
+    // Regression: with a 24px threshold, placing a window near an edge tiled
+    // it to half the screen instead of leaving it where it was dropped.
+    expect(detectSnapZone({ x: 18, y: 400 }, LAPTOP)).toBeNull();
+    expect(detectSnapZone({ x: LAPTOP.width - 18, y: 400 }, LAPTOP)).toBeNull();
+  });
+
+  it("arms maximize only when the pointer is pushed into the menu bar", () => {
     expect(detectSnapZone({ x: 700, y: 4 }, LAPTOP)).toBe("maximized");
+    expect(detectSnapZone({ x: 700, y: MENU_BAR_HEIGHT }, LAPTOP)).toBe(
+      "maximized",
+    );
+  });
+
+  it("does not hijack a window placed at the top of the desktop", () => {
+    // Regression: dropping with the pointer just below the menu bar (i.e.
+    // placing a window flush with the top) used to maximize it instead.
+    expect(
+      detectSnapZone({ x: 700, y: MENU_BAR_HEIGHT + 18 }, LAPTOP),
+    ).toBeNull();
   });
 });
 

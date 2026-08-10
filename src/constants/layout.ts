@@ -11,8 +11,12 @@ export const GRID_SIZE = 90;
 export const WINDOW_DEFAULTS = {
   MIN_WIDTH: 400,
   MIN_HEIGHT: 300,
-  /** Pointer distance from a screen edge that arms an edge snap. */
-  SNAP_THRESHOLD: 24,
+  /**
+   * Pointer distance from the left/right screen edge that arms an edge snap.
+   * Deliberately small: a drop *near* an edge is usually a placement, not a
+   * request to tile — only a pointer pressed hard against the edge snaps.
+   */
+  SNAP_THRESHOLD: 8,
   /** Height of the window title bar (`h-10`). */
   TITLE_BAR_HEIGHT: 40,
   /** Gap kept between an auto-placed window and the edge of the work area. */

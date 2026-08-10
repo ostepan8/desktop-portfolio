@@ -35,7 +35,7 @@ export interface WindowGeometry {
   mode: WindowMode;
   /** True while a maximize / snap / restore transition should be animated. */
   isTransitioning: boolean;
-  /** Geometry the window returns to when un-snapped, fitted to the desktop. */
+  /** Geometry the window returns to when un-snapped. */
   restoreRect: Rect;
   /** Latest geometry including an in-flight gesture. */
   liveRect: () => Rect;
@@ -61,16 +61,20 @@ function writeRect(element: HTMLElement | null, rect: Rect): void {
 /**
  * Owns a window's position, size, and snap state.
  *
- * Two ideas keep this smooth:
+ * Two rules keep this predictable:
  *
  * 1. Drags and resizes are painted straight to the DOM (`previewRect`) and only
  *    committed to React state on release, so a gesture costs zero re-renders of
- *    the window's contents. `commitRect` writes the identical values React then
- *    renders, so there is no flash at the hand-off.
- * 2. The desktop fit is *derived*, never stored. State holds the geometry the
- *    user chose; what gets rendered is that geometry fitted to the current work
- *    area. Shrinking the browser tucks windows back into view, and growing it
- *    again returns them to the size they had.
+ *    the window's contents.
+ * 2. **What the user commits is exactly what gets rendered.** The gesture
+ *    handlers apply their own constraints while the pointer moves, and the
+ *    committed rect is never re-clamped, re-fitted, or otherwise second-guessed
+ *    afterwards — a window dropped hanging off the edge of the screen stays
+ *    hanging off the edge. Stored geometry is only adjusted when the work area
+ *    itself changes (browser resize), and that adjustment happens once, not as
+ *    a continuous derivation. A snapped window is the exception: its geometry
+ *    is defined by its mode, so it is derived from the work area and tracks
+ *    browser resizes for free.
  */
 export function useWindowGeometry({
   initialRect,
@@ -83,22 +87,29 @@ export function useWindowGeometry({
   const [isTransitioning, setIsTransitioning] = useState(false);
   /** Geometry a snapped window returns to. Also the size a drag detaches at. */
   const [restoreRect, setRestoreRect] = useState<Rect>(initialRect);
+  /** Work area the stored rects were last fitted to. */
+  const [fittedArea, setFittedArea] = useState<Rect>(workArea);
+
+  // Browser resized: pull stored geometry back into reach, once. This is the
+  // adjust-state-during-render pattern (not an effect), so the corrected rect
+  // renders in the same pass and never flashes. `fitRectToArea` returns its
+  // input unchanged when the rect is already valid, so the common case is a
+  // no-op.
+  if (fittedArea !== workArea) {
+    setFittedArea(workArea);
+    const nextRect = fitRectToArea(rect, min, workArea);
+    if (nextRect !== rect) setRect(nextRect);
+    const nextRestore = fitRectToArea(restoreRect, min, workArea);
+    if (nextRestore !== restoreRect) setRestoreRect(nextRestore);
+  }
 
   const gestureRef = useRef<Rect | null>(null);
   const renderedRef = useRef<Rect>(initialRect);
   const transitionTimer = useRef<number | null>(null);
 
   const renderedRect = useMemo(
-    () =>
-      mode === "floating"
-        ? fitRectToArea(rect, min, workArea)
-        : snapRect(mode, workArea),
-    [rect, mode, min, workArea],
-  );
-
-  const fittedRestoreRect = useMemo(
-    () => fitRectToArea(restoreRect, min, workArea),
-    [restoreRect, min, workArea],
+    () => (mode === "floating" ? rect : snapRect(mode, workArea)),
+    [rect, mode, workArea],
   );
 
   // Geometry is written here, after every render, rather than being left to
@@ -156,10 +167,11 @@ export function useWindowGeometry({
     (next: WindowMode) => {
       if (next === "floating") {
         setMode("floating");
-        // Commit the remembered geometry as-is, not its fitted form: the fit
-        // is re-derived on render, so a window restored on a cramped desktop
-        // still returns to its full size once there is room again.
-        commitRect(restoreRect, { animate: true });
+        // The remembered geometry may predate a viewport change, so fit it to
+        // the *current* work area at the moment it is restored.
+        commitRect(fitRectToArea(restoreRect, min, workArea), {
+          animate: true,
+        });
         return;
       }
       // Remember where to come back to, but only when leaving a floating
@@ -168,7 +180,7 @@ export function useWindowGeometry({
       setMode(next);
       commitRect(snapRect(next, workArea), { animate: true });
     },
-    [commitRect, liveRect, mode, restoreRect, workArea],
+    [commitRect, liveRect, min, mode, restoreRect, workArea],
   );
 
   const commitFloating = useCallback(
@@ -188,7 +200,7 @@ export function useWindowGeometry({
     rect: renderedRect,
     mode,
     isTransitioning,
-    restoreRect: fittedRestoreRect,
+    restoreRect,
     liveRect,
     previewRect,
     commitRect,
