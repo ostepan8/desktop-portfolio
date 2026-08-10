@@ -127,6 +127,10 @@ export function useWindowDrag({
   return useCallback(
     (event: ReactPointerEvent) => {
       if (event.button !== 0) return;
+      // A press on a title-bar control (traffic lights) is a click, not the
+      // start of a drag — and must not steal the pointer from the button.
+      if (event.target instanceof Element && event.target.closest("button"))
+        return;
       const start = liveRect();
       sessionRef.current = {
         start,

@@ -229,18 +229,24 @@ export function snapRect(zone: SnapZone, area: Rect): Rect {
 }
 
 /**
- * Which snap zone the *pointer* is arming, if any. Keying off the pointer
- * rather than the window's edges means a wide window no longer snaps just
- * because it happens to reach across the screen.
+ * Which snap zone the *pointer* is arming, if any. Deliberately conservative,
+ * because a snap that fires when the user only wanted to *place* a window
+ * near an edge reads as the window "not going where I put it":
+ *
+ *   - maximize arms only when the pointer is pushed into the menu bar — no
+ *     legitimate placement wants the pointer there, since the title bar can
+ *     never sit above the work area anyway;
+ *   - left/right tiling arms only with the pointer hard against the screen
+ *     edge (within {@link WINDOW_DEFAULTS.SNAP_THRESHOLD} px).
  */
 export function detectSnapZone(
   pointer: Position,
   viewport: Size,
   threshold: number = WINDOW_DEFAULTS.SNAP_THRESHOLD,
 ): SnapZone | null {
+  if (pointer.y <= MENU_BAR_HEIGHT) return "maximized";
   if (pointer.x <= threshold) return "left";
   if (pointer.x >= viewport.width - threshold) return "right";
-  if (pointer.y <= MENU_BAR_HEIGHT + threshold) return "maximized";
   return null;
 }
 

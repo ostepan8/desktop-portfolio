@@ -48,6 +48,21 @@ export function usePointerDrag(options: PointerDragOptions) {
 
     optionsRef.current.onStart?.(lastState, event);
 
+    // Capture the pointer so the gesture keeps tracking when the cursor
+    // crosses an iframe (which would otherwise swallow the events and freeze
+    // the drag) or leaves the browser window entirely. Captured events are
+    // retargeted to this element and still bubble to the window listeners
+    // below; capture auto-releases on pointerup.
+    const captureTarget = event.currentTarget;
+    if (captureTarget instanceof Element) {
+      try {
+        captureTarget.setPointerCapture(event.pointerId);
+      } catch {
+        // Pointer already gone (e.g. pen lifted mid-press) — fall back to
+        // plain window listeners.
+      }
+    }
+
     const handleMove = (e: PointerEvent) => {
       lastState = {
         startX,
